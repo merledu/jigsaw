@@ -47,12 +47,6 @@ class BlockRamWithMasking(
 
   val io = IO(new BlockRamWithMaskingBundle(addrWidth, dataWidth))
 
-  //  val mem = if (maskable) {
-  //    SyncReadMem(Math.pow(2, addrWidth).toInt, Vec(4, UInt((dataWidth/8).W)))
-  //  } else {
-  //    SyncReadMem(Math.pow(2, addrWidth).toInt, UInt(dataWidth.W))
-  //  }
-
   val mem = SyncReadMem(Math.pow(2, addrWidth).toInt, Vec(4, UInt((dataWidth/4).W)))
 
   if(programFile.isDefined) {
