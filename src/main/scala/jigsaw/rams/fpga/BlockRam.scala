@@ -1,61 +1,95 @@
 package jigsaw.rams.fpga
+import caravan.bus.common.{AbstrRequest, AbstrResponse, BusConfig}
+import caravan.bus.wishbone.{WBRequest, WBResponse, WishboneConfig}
 import chisel3._
-import chisel3.util.experimental.{loadMemoryFromFile, loadMemoryFromFileInline}
-import chisel3.experimental.{ChiselAnnotation, annotate}
+import chisel3.experimental.BaseModule
+import chisel3.util.experimental.loadMemoryFromFile
+import chisel3.util.Decoupled
 
-class BlockRamWithoutMaskingBundle(addrWidth: Int, dataWidth: Int) extends Bundle {
-  val addr = Input(UInt(addrWidth.W))
-  val write = Input(Bool())
-  val enable = Input(Bool())
-  val wrData = Input(UInt(dataWidth.W))
-  val rdData = Output(UInt(dataWidth.W))
+object BlockRam {
+
+  def createNonMaskableRAM[T <: BusConfig]
+                          (programFile: Option[String],
+                           bus: T,
+                           rows: Int) = {
+    bus match {
+      case bus: WishboneConfig => {
+        implicit val config = bus.asInstanceOf[WishboneConfig]
+        new BlockRamWithoutMasking(new WBRequest(), new WBResponse(), None, rows)
+      }
+    }
+  }
+
+  def createMaskableRAM[T <: BusConfig]
+                       (programFile: Option[String],
+                        bus: T,
+                        rows: Int) = {
+    bus match {
+      case bus: WishboneConfig => {
+        implicit val config = bus.asInstanceOf[WishboneConfig]
+        new BlockRamWithMasking(new WBRequest(), new WBResponse(), None, rows)
+      }
+    }
+  }
+    //implicit val config = bus.asInstanceOf[WishboneConfig]
+    //new BlockRamWithoutMasking(new WBRequest(), new WBResponse(), None, rows)
+
 }
 
-class BlockRamWithMaskingBundle(addrWidth: Int, dataWidth: Int) extends Bundle {
-  val addr = Input(UInt(addrWidth.W))
-  val write = Input(Bool())
-  val enable = Input(Bool())
-  val mask = Input(Vec(4, Bool()))
-  val wrData = Input(Vec(4, UInt((dataWidth/4).W)))
-  val rdData = Output(Vec(4, UInt((dataWidth/4).W)))
-}
+class BlockRamWithoutMasking[A <: AbstrRequest, B <: AbstrResponse]
+                            (gen: A, gen1: B, programFile: Option[String], rows: Int) extends Module {
 
-class BlockRamWithoutMasking(
-                addrWidth: Int,
-                dataWidth: Int,
-                programFile: Option[String]) extends Module {
+  val io = IO(new Bundle {
+    val req = Flipped(Decoupled(gen))
+    val rsp = Decoupled(gen1)
+  })
 
-  val io = IO(new BlockRamWithoutMaskingBundle(addrWidth, dataWidth))
+  // the register that sends valid along with the data read from memory
+  // a register is used so that it synchronizes along with the data that comes after one cycle
+  val validReg = RegInit(false.B)
+  io.rsp.valid := validReg
+  io.rsp.bits.error := false.B   // assuming memory controller would never return an error
+  io.req.ready := true.B // assuming we are always ready to accept requests from device
 
-  val mem = SyncReadMem(Math.pow(2, addrWidth).toInt, UInt(dataWidth.W))
+  val mem = SyncReadMem(rows, UInt(32.W))
 
   if(programFile.isDefined) {
     loadMemoryFromFile(mem, programFile.get)
   }
 
-  io.rdData := mem.read(io.addr, io.enable)
-  when(io.write) {
-      mem.write(io.addr, io.wrData)
+  when(io.req.fire() && !io.req.bits.isWrite) {
+    // READ
+    io.rsp.bits.dataResponse := mem.read(io.req.bits.addrRequest/4.U)
+    validReg := true.B
+  } .elsewhen(io.req.fire() && io.req.bits.isWrite) {
+    // WRITE
+    mem.write(io.req.bits.addrRequest/4.U, io.req.bits.dataRequest)
+    validReg := true.B
+    io.rsp.bits.dataResponse := DontCare
+  } .otherwise {
+    validReg := false.B
+    io.rsp.bits.dataResponse := DontCare
   }
-
 }
 
-class BlockRamWithMasking(
-                   addrWidth: Int,
-                   dataWidth: Int,
-                   programFile: Option[String]) extends Module {
+/** TODO: This is left to be done right now */
+class BlockRamWithMasking[A <: AbstrRequest, B <: AbstrResponse]
+                         (gen: A, gen1: B, programFile: Option[String], rows: Int) extends Module {
 
-  val io = IO(new BlockRamWithMaskingBundle(addrWidth, dataWidth))
 
-  val mem = SyncReadMem(Math.pow(2, addrWidth).toInt, Vec(4, UInt((dataWidth/4).W)))
+  val io = IO(new Bundle {
+    val req = Flipped(Decoupled(gen))
+    val rsp = Decoupled(gen1)
+  })
+
+  val mem = SyncReadMem(rows, Vec(4, UInt((32/4).W)))
 
   if(programFile.isDefined) {
     loadMemoryFromFile(mem, programFile.get)
   }
 
-  io.rdData := mem.read(io.addr, io.enable)
-  when(io.write) {
-    mem.write(io.addr, io.wrData, io.mask)
-  }
+  io.rsp.valid := true.B
+  io.rsp.bits.dataResponse := 2.U
+  io.rsp.bits.error := false.B
 
 }
