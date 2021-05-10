@@ -184,7 +184,7 @@ class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDump
 
   "write and read full word in maskable bram" in {
     val programFile = getFile
-    test(BlockRam.createMaskableRAM(programFile, WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(BlockRam.createMaskableRAM(WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.clock.step(5)
       sendRequest(0.U, "habcdef01".U, "b1111".U, true.B)
       println("VALID RESPONSE = " + c.io.rsp.valid.peek().litToBoolean.toString)
@@ -222,7 +222,7 @@ class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDump
 
   "write full word, read ls half word in maskable bram" in {
     val programFile = getFile
-    test(BlockRam.createMaskableRAM(programFile, WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(BlockRam.createMaskableRAM(WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.clock.step(2)
       sendRequest(0.U, "habcdef01".U, "b1111".U, true.B)
       println("VALID RESPONSE = " + c.io.rsp.valid.peek().litToBoolean.toString)
@@ -264,7 +264,7 @@ class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDump
 
   "write full word, read ms half word in maskable bram" in {
     val programFile = getFile
-    test(BlockRam.createMaskableRAM(programFile, WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(BlockRam.createMaskableRAM(WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.clock.step(2)
       sendRequest(0.U, "habcdef01".U, "b1111".U, true.B)
       println("VALID RESPONSE = " + c.io.rsp.valid.peek().litToBoolean.toString)
@@ -306,7 +306,7 @@ class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDump
 
   "write full word, read lsb in maskable bram" in {
     val programFile = getFile
-    test(BlockRam.createMaskableRAM(programFile, WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(BlockRam.createMaskableRAM(WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.clock.step(2)
       sendRequest(0.U, "habcdef01".U, "b1111".U, true.B)
       println("VALID RESPONSE = " + c.io.rsp.valid.peek().litToBoolean.toString)
@@ -348,7 +348,7 @@ class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDump
 
   "write full word, read msb in maskable bram" in {
     val programFile = getFile
-    test(BlockRam.createMaskableRAM(programFile, WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(BlockRam.createMaskableRAM(WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.clock.step(2)
       sendRequest(0.U, "habcdef01".U, "b1111".U, true.B)
       println("VALID RESPONSE = " + c.io.rsp.valid.peek().litToBoolean.toString)
@@ -390,7 +390,7 @@ class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDump
 
   "write ls half word, read ls half word in maskable bram" in {
     val programFile = getFile
-    test(BlockRam.createMaskableRAM(programFile, WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(BlockRam.createMaskableRAM(WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.clock.step(2)
       sendRequest(0.U, "habcdef01".U, "b0011".U, true.B)
       println("VALID RESPONSE = " + c.io.rsp.valid.peek().litToBoolean.toString)
@@ -432,7 +432,7 @@ class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDump
 
   "write two half word, read full word in maskable bram" in {
     val programFile = getFile
-    test(BlockRam.createMaskableRAM(programFile, WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(BlockRam.createMaskableRAM(WishboneConfig(32,32), 1024)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.clock.step(2)
       sendRequest(0.U, "h0000ef01".U, "b0011".U, true.B)
       println("VALID RESPONSE = " + c.io.rsp.valid.peek().litToBoolean.toString)
