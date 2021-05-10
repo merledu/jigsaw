@@ -20,13 +20,12 @@ object BlockRam {
   }
 
   def createMaskableRAM[T <: BusConfig]
-                       (programFile: Option[String],
-                        bus: T,
+                       (bus: T,
                         rows: Int) = {
     bus match {
       case bus: WishboneConfig => {
         implicit val config = bus.asInstanceOf[WishboneConfig]
-        new BlockRamWithMasking(new WBRequest(), new WBResponse(), programFile, rows)
+        new BlockRamWithMasking(new WBRequest(), new WBResponse(), rows)
       }
     }
   }
@@ -70,7 +69,7 @@ class BlockRamWithoutMasking[A <: AbstrRequest, B <: AbstrResponse]
 }
 
 class BlockRamWithMasking[A <: AbstrRequest, B <: AbstrResponse]
-                         (gen: A, gen1: B, programFile: Option[String], rows: Int) extends Module {
+                         (gen: A, gen1: B, rows: Int) extends Module {
 
 
   val io = IO(new Bundle {
@@ -108,10 +107,6 @@ class BlockRamWithMasking[A <: AbstrRequest, B <: AbstrResponse]
   io.req.ready := true.B // assuming we are always ready to accept requests from device
 
   val mem = SyncReadMem(rows, Vec(4, UInt((32/4).W)))
-
-  if(programFile.isDefined) {
-    loadMemoryFromFile(mem, programFile.get)
-  }
 
   when(io.req.fire() && !io.req.bits.isWrite) {
     // READ
