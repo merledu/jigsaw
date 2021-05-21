@@ -36,6 +36,7 @@ class GpioRegTop[A <: AbstrRequest, B <: AbstrResponse]
   reg_addr := io.req.bits.addrRequest
   reg_be := io.req.bits.activeByteLane
 
+  io.rsp.valid := RegNext(Mux(reg_we || reg_re, true.B, false.B))
   io.rsp.bits.dataResponse := reg_rdata
   io.rsp.bits.error := reg_error
 
