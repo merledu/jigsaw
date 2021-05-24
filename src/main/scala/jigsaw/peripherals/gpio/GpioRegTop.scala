@@ -1,7 +1,7 @@
 package jigsaw.peripherals.gpio
 import caravan.bus.common.{AbstrRequest, AbstrResponse}
 import chisel3._
-import chisel3.util.{Cat, Decoupled, Fill}
+import chisel3.util.{Cat, Decoupled, Fill, MuxCase}
 import jigsaw.peripherals.common.{SubReg, SubRegExt}
 
 class GpioRegTop[A <: AbstrRequest, B <: AbstrResponse]
@@ -285,13 +285,13 @@ class GpioRegTop[A <: AbstrRequest, B <: AbstrResponse]
     GPIO_PERMIT(i) := "b1111".U
   }
 
-  for (i <- GpioRegistersMap.all.indices) {
-    wr_err := Mux(addr_hit(i) && reg_we && (GPIO_PERMIT(i) =/= (GPIO_PERMIT(i) & reg_be)), true.B, false.B)
+  val cases: Seq[(Bool,Bool)] = addr_hit.zip(GPIO_PERMIT).map {case (a, g) =>
+    (a && reg_we && (g =/= (g & reg_be))) -> true.B
   }
 
-  /** Initialising software wires received from the TL-UL Host by TL_RegAdapter */
+  wr_err := MuxCase(false.B, cases)
 
-  /** ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| */
+
 
   intr_state_we := addr_hit(0) & reg_we & !wr_err
   intr_state_wd := reg_wdata
