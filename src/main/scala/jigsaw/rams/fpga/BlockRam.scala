@@ -40,13 +40,21 @@ class BlockRamWithoutMasking[A <: AbstrRequest, B <: AbstrResponse]
     val rsp = Decoupled(gen1)
   })
 
+  val addrMisaligned = Wire(Bool())
+  val addrOutOfBounds = Wire(Bool())
+
   // the register that sends valid along with the data read from memory
   // a register is used so that it synchronizes along with the data that comes after one cycle
   val validReg = RegInit(false.B)
+  val errReg = RegInit(false.B)
   io.rsp.valid := validReg
-  io.rsp.bits.error := false.B   // assuming memory controller would never return an error
+  io.rsp.bits.error := errReg
   io.req.ready := true.B // assuming we are always ready to accept requests from device
 
+  addrMisaligned := Mux(io.req.fire(), io.req.bits.addrRequest(1,0).orR(), false.B)
+  addrOutOfBounds := Mux(io.req.fire(), (io.req.bits.addrRequest/4.U) >= (rows-1).asUInt(), false.B)
+
+  errReg := addrMisaligned || addrOutOfBounds
   val mem = SyncReadMem(rows, UInt(32.W))
 
   if(programFile.isDefined) {
