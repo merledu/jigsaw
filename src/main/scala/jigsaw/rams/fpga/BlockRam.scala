@@ -1,5 +1,6 @@
 package jigsaw.rams.fpga
 import caravan.bus.common.{AbstrRequest, AbstrResponse, BusConfig}
+import caravan.bus.native.{NativeConfig, NativeRequest, NativeResponse}
 import caravan.bus.wishbone.{WBRequest, WBResponse, WishboneConfig}
 import chisel3._
 import chisel3.util.experimental.loadMemoryFromFile
@@ -16,6 +17,12 @@ object BlockRam {
         implicit val config = bus.asInstanceOf[WishboneConfig]
         new BlockRamWithoutMasking(new WBRequest(), new WBResponse(), programFile, rows)
       }
+
+      case bus: NativeConfig => {
+        implicit val config = bus.asInstanceOf[NativeConfig]
+        new BlockRamWithoutMasking(new NativeRequest(), new NativeResponse(), programFile, rows)
+      }
+
     }
   }
 
@@ -26,6 +33,11 @@ object BlockRam {
       case bus: WishboneConfig => {
         implicit val config = bus.asInstanceOf[WishboneConfig]
         new BlockRamWithMasking(new WBRequest(), new WBResponse(), rows)
+      }
+
+      case bus: NativeConfig => {
+        implicit val config = bus.asInstanceOf[NativeConfig]
+        new BlockRamWithMasking(new NativeRequest(), new NativeResponse(), rows)
       }
     }
   }
