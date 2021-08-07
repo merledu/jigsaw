@@ -23,6 +23,11 @@ object BlockRam {
         new BlockRamWithoutMasking(new NativeRequest(), new NativeResponse(), programFile, rows)
       }
 
+      case bus: TilelinkConfig => {
+        implicit val config = bus.asInstanceOf[TilelinkConfig]
+        new BlockRamWithoutMasking(new TLRequest(), new TLResponse(), programFile, rows)
+      }
+
     }
   }
 
@@ -39,6 +44,12 @@ object BlockRam {
         implicit val config = bus.asInstanceOf[NativeConfig]
         new BlockRamWithMasking(new NativeRequest(), new NativeResponse(), rows)
       }
+
+      case bus:TilelinkConfig => {
+        implicit val config = bus.asInstanceOf[TilelinkConfig]
+        new BlockRamWithMasking(new TLRequest, new TLResponse, rows)
+      }
+
     }
   }
 
