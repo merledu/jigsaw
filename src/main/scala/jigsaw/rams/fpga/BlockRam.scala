@@ -2,6 +2,7 @@ package jigsaw.rams.fpga
 import caravan.bus.common.{AbstrRequest, AbstrResponse, BusConfig}
 import caravan.bus.native.{NativeConfig, NativeRequest, NativeResponse}
 import caravan.bus.wishbone.{WBRequest, WBResponse, WishboneConfig}
+import caravan.bus.tilelink.{TLRequest, TLResponse, TilelinkConfig}
 import chisel3._
 import chisel3.util.experimental.loadMemoryFromFile
 import chisel3.util.{Cat, Decoupled}
@@ -23,6 +24,11 @@ object BlockRam {
         new BlockRamWithoutMasking(new NativeRequest(), new NativeResponse(), programFile, rows)
       }
 
+      case bus: TilelinkConfig => {
+        implicit val config = bus.asInstanceOf[TilelinkConfig]
+        new BlockRamWithoutMasking(new TLRequest(), new TLResponse(), programFile, rows)
+      }
+
     }
   }
 
@@ -39,6 +45,12 @@ object BlockRam {
         implicit val config = bus.asInstanceOf[NativeConfig]
         new BlockRamWithMasking(new NativeRequest(), new NativeResponse(), rows)
       }
+
+      case bus:TilelinkConfig => {
+        implicit val config = bus.asInstanceOf[TilelinkConfig]
+        new BlockRamWithMasking(new TLRequest(), new TLResponse(), rows)
+      }
+
     }
   }
 

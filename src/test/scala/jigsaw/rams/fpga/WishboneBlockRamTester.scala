@@ -16,7 +16,7 @@ trait MemoryDumpFileHelper { self: FreeSpec with ChiselScalatestTester =>
   }
 }
 
-class BlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDumpFileHelper {
+class WishboneBlockRamTester extends FreeSpec with ChiselScalatestTester with MemoryDumpFileHelper {
 
   "write and read to single location in non-maskable bram" in {
     val programFile = getFile
