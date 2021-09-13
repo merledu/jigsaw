@@ -33,8 +33,11 @@ class SpiWrapper extends Module{
 
     // TODO: addrRequest and isWrite 
 
-    io.dataResponse.bits := Mux(~io.dataResponse.ready & ~spiMaster.io.finish, spiMaster.io.data_out, DontCare)
+    io.dataResponse.bits := Mux(io.dataResponse.ready, spiMaster.io.data_out, DontCare)
     io.dataResponse.valid := spiMaster.io.finish
+
+    // io.dataResponse.bits := Mux(~io.dataResponse.ready & ~spiMaster.io.finish, spiMaster.io.data_out, DontCare)
+    // io.dataResponse.valid := spiMaster.io.finish
 
     // TODO: ackWrite
     io.ackWrite := DontCare

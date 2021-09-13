@@ -133,7 +133,7 @@ always @(*) begin
 end
 
 // Initialize ready signal
-// assign spi_ready = (cstate == IDLE)? 1'b1:1'b0;
+assign spi_ready = (cstate == IDLE)? 1'b1:1'b0;
 
 // assign  if(cstate == IDLE)
 // 			ready = 1'b1
