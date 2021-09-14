@@ -7,17 +7,18 @@ import chisel3.experimental.ChiselEnum
 import chisel3.stage.ChiselStage
 import chisel3.util.{Cat, Decoupled}
 import chisel3.util.experimental.loadMemoryFromFile
+import jigsaw.peripherals.spi._
 
-class Spi/*(programFile: Option[String])*/(implicit val config: TilelinkConfig) extends Module {
+class Spi(implicit val config: TilelinkConfig, implicit val spiConfig: Config) extends Module {
   val io = IO(new Bundle {
     val valid = Input(Bool())
-    val addrReq = Input(UInt(config.a.W))
-    val dataReq = Input(UInt(32.W))
-    val byteLane = Input(UInt(32.W))
+    val addrReq = Input(UInt(spiConfig.DW.W))
+    val dataReq = Input(UInt(spiConfig.DW.W))
+    val byteLane = Input(UInt((spiConfig.DW/8).W))
     val isWrite = Input(Bool())
 
     val validResp = Output(Bool())
-    val dataResp = Output(UInt(32.W))
+    val dataResp = Output(UInt(spiConfig.DW.W))
 
     //master spi
     val cs_n = Output(Bool())

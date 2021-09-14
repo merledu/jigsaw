@@ -3,11 +3,12 @@ package jigsaw.peripherals.spi
 import chisel3._
 import chisel3.util._
 import chisel3.experimental._
+import jigsaw.peripherals.spi._
 
-class WrapperIO extends Bundle{
-    val dataRequest = Flipped(Decoupled(UInt(32.W)))
-    val addrRequest = Input(UInt(32.W))
-    val activeByteLane = Input(UInt(32.W))
+class WrapperIO(DW:Int) extends Bundle{
+    val dataRequest = Flipped(Decoupled(UInt(DW.W)))
+    val addrRequest = Input(UInt(DW.W))
+    val activeByteLane = Input(UInt((DW/8).W))
     val isWrite = Input(Bool())
 
     val dataResponse = Decoupled(UInt(32.W))
@@ -22,8 +23,8 @@ class WrapperIO extends Bundle{
     val miso = Input(Bool())
 }
 
-class SpiWrapper extends Module{
-    val io = IO(new WrapperIO)
+class SpiWrapper(implicit val spiConfig: Config) extends Module{
+    val io = IO(new WrapperIO(spiConfig.DW))
     val spiMaster = Module(new SpiMaster)
 
     // Bus Interface

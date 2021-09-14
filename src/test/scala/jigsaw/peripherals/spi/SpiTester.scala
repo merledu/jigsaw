@@ -10,6 +10,7 @@ import chisel3.experimental.BundleLiterals._
 import chiseltest.experimental.TestOptionBuilder._
 import chiseltest.internal.VerilatorBackendAnnotation
 // import org.scalatest.flatspec.AnyFlatSpec
+import jigsaw.peripherals.spi._
 
 
 
@@ -50,6 +51,7 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
 
   "Spi" in {
     implicit val config = TilelinkConfig()
+    implicit val spiConfig = Config()
     test(new Spi()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.io.dataReq.poke("b10111011101110111011101110111011".U)
       c.io.byteLane.poke("b1111".U)
