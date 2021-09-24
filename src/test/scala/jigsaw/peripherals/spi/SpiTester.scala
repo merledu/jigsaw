@@ -9,9 +9,9 @@ import chiseltest._
 import chisel3.experimental.BundleLiterals._
 import chiseltest.experimental.TestOptionBuilder._
 import chiseltest.internal.VerilatorBackendAnnotation
-// import org.scalatest.flatspec.AnyFlatSpec
 import jigsaw.peripherals.spi._
-
+import jigsaw.SpiHarness
+import caravan.bus.wishbone.WishboneConfig
 
 
 class SpiTester extends FreeSpec with ChiselScalatestTester {
@@ -50,24 +50,24 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
   // }
 
   "Spi" in {
-    implicit val config = TilelinkConfig()
+    implicit val config = WishboneConfig(32,32)
     implicit val spiConfig = Config()
-    test(new Spi()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
-      c.io.dataReq.poke("b10111011101110111011101110111011".U)
-      c.io.byteLane.poke("b1111".U)
-      c.io.isWrite.poke(true.B)
-      c.io.valid.poke(true.B)
+    test(new SpiHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+      c.io.req.bits.dataRequest.poke("b10111011101110111011101110111011".U)
+      c.io.req.bits.activeByteLane.poke("b1111".U)
+      c.io.req.bits.isWrite.poke(true.B)
+      c.io.req.valid.poke(true.B)
 
       c.clock.step(5)
 
       
-      c.io.dataReq.poke("b11111110000000001111111111000000".U)
-      c.io.byteLane.poke("b1111".U)
-      c.io.isWrite.poke(true.B)
-      c.io.valid.poke(true.B)
+      c.io.req.bits.dataRequest.poke("b11111110000000001111111111000000".U)
+      c.io.req.bits.activeByteLane.poke("b1111".U)
+      c.io.req.bits.isWrite.poke(true.B)
+      c.io.req.valid.poke(true.B)
 
       var count = 1
-      while(count != 2000) {
+      while(count != 1000) {
           val mosi = c.io.mosi.peek()
           c.io.miso.poke(mosi)
           // println("This is the real answer ************"+c.io.mosi.peek())
@@ -80,7 +80,7 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
 
 
 
-    //   c.clock.step(5)
+      // c.clock.step(5)
     //   c.io.valid.poke(true.B)
     //   c.io.addrReq.poke(0.U)
     //   c.io.dataReq.poke("b1010101010101010101010100001101".U)
