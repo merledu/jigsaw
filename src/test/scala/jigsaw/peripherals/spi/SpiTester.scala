@@ -12,7 +12,8 @@ import chiseltest.internal.VerilatorBackendAnnotation
 import jigsaw.peripherals.spi._
 import jigsaw.SpiHarness
 import caravan.bus.wishbone.WishboneConfig
-
+import caravan.bus.tilelink.TilelinkConfig
+import jigsaw.peripherals.spiflash._
 
 class SpiTester extends FreeSpec with ChiselScalatestTester {
 
@@ -49,12 +50,14 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
   //   }
   // }
 
-  "Spi" in {
-    implicit val config = WishboneConfig(32,32)
-    implicit val spiConfig = Config()
+  "Spi Flash" in {
+    // implicit val config = WishboneConfig(32,32)
+    implicit val config = TilelinkConfig()
+    implicit val spiConfig = jigsaw.peripherals.spiflash.Config()
     test(new SpiHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.io.req.bits.dataRequest.poke("b10111011101110111011101110111011".U)
       c.io.req.bits.activeByteLane.poke("b1111".U)
+      c.io.req.bits.addrRequest.poke(659.U)
       c.io.req.bits.isWrite.poke(true.B)
       c.io.req.valid.poke(true.B)
 
@@ -63,6 +66,7 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
       
       c.io.req.bits.dataRequest.poke("b11111110000000001111111111000000".U)
       c.io.req.bits.activeByteLane.poke("b1111".U)
+      c.io.req.bits.addrRequest.poke(200.U)
       c.io.req.bits.isWrite.poke(true.B)
       c.io.req.valid.poke(true.B)
 
