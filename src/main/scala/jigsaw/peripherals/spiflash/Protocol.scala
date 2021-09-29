@@ -13,14 +13,21 @@ class Protocol_IO(DW:Int) extends Bundle{
     val sck = Output(Bool())
     val data_in = Flipped(Decoupled(UInt(DW.W)))
     val data_out = Decoupled(UInt(DW.W))
+    // val config = Input(UInt(DW.W))
+    val CPOL = Input(Bool())
+    val CPHA = Input(Bool())
+    val resetProtocol = Input(Bool())
 }
 
 class Protocol(implicit val spiConfig: Config) extends Module{
-    val DW = 32
+    // val DW = 32
     val io = IO(new Protocol_IO(spiConfig.DW))
     
-    val CPOL = false
-    val CPHA = false
+    // val configReg = Reg(Bool())
+    // configReg := io.resetProtocol
+    // when(io.resetProtocol === 0.B){
+    val CPOL = io.CPOL
+    val CPHA = io.CPHA
 
     val idle :: busy :: Nil = Enum(2)
     val state = RegInit(idle)
@@ -38,19 +45,17 @@ class Protocol(implicit val spiConfig: Config) extends Module{
     io.ss := 1.B
     io.mosi := 0.B
 
-    // def risingedge(x: Bool) = !fallingedge(x)
-    // def fallingedge(x: Bool) = !x && RegNext(x)
-
-    if (!CPOL & !CPHA){
+    when (~CPOL & ~CPHA){
         // Transmission
         switch(state){
             is(idle){
                 io.data_in.ready := 1.B
-                when (io.data_in.valid & io.data_in.ready){
+                when (io.data_in.valid/* & io.data_in.ready*/){
                     // io.data_in.ready := 1.B
                     // io.ss := 0.B
-                    dataReg := Cat("b00000011".U,Fill(24,0.B),io.data_in.bits) // Fill should be at the end
+                    // dataReg := Cat("b00000011".U,Fill(24,0.B),io.data_in.bits) // Fill should be at the end
                     // dataReg := Cat("b00000011".U,io.data_in.bits(23,0),Fill(32,0.B))
+                    dataReg := Cat(io.data_in.bits, Fill(32,0.B)) // it should be this
                     state := busy
                 }
             }
@@ -87,6 +92,14 @@ class Protocol(implicit val spiConfig: Config) extends Module{
         // io.data_out.bits := Reverse(miso_dataReg)
         // io.data_out.bits := miso_dataReg
     }
+    // }.otherwise{
+    //     io.data_out.bits := DontCare
+    //     io.data_out.valid := DontCare
+    //     io.mosi := DontCare
+    //     io.ss := DontCare
+    //     io.sck := DontCare
+    //     io.data_in.ready := 1.B
+    // }
 }
 
 
