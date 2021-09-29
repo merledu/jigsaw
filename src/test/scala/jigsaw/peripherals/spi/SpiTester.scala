@@ -51,35 +51,52 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
   // }
 
   "Spi Flash" in {
-    // implicit val config = WishboneConfig(32,32)
-    implicit val config = TilelinkConfig()
+    implicit val config = WishboneConfig(32,32)
+    // implicit val config = TilelinkConfig()
     implicit val spiConfig = jigsaw.peripherals.spiflash.Config()
     test(new SpiHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
-      c.io.req.bits.dataRequest.poke("b10111011101110111011101110111011".U)
-      c.io.req.bits.activeByteLane.poke("b1111".U)
-      c.io.req.bits.addrRequest.poke(659.U)
-      c.io.req.bits.isWrite.poke(true.B)
-      c.io.req.valid.poke(true.B)
-
+      c.io.req.bits.addrRequest.poke(0.U)
+      c.io.req.bits.dataRequest.poke(0.U)
+      c.io.req.bits.isWrite.poke(1.B)
+      c.io.req.valid.poke(1.B)
+      c.clock.step(1)
+      c.io.req.valid.poke(0.B)
+      c.clock.step(1)
+      c.io.req.bits.dataRequest.poke(659.U)
+      // c.io.req.bits.dataRequest.poke("b00000011101110111011101110111011".U)
+      c.io.req.bits.addrRequest.poke(3.U)
+      c.io.req.bits.isWrite.poke(1.B)
+      c.io.req.valid.poke(1.B)
       c.clock.step(5)
+      c.io.req.valid.poke(0.B)
+
+
+
+//////////////////////////////////////////////
+      // c.io.req.bits.dataRequest.poke("b10111011101110111011101110111011".U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // c.io.req.bits.addrRequest.poke(659.U)
+      // c.io.req.bits.isWrite.poke(true.B)
+      // c.io.req.valid.poke(true.B)
+
+      // c.clock.step(5)
 
       
-      c.io.req.bits.dataRequest.poke("b11111110000000001111111111000000".U)
-      c.io.req.bits.activeByteLane.poke("b1111".U)
-      c.io.req.bits.addrRequest.poke(200.U)
-      c.io.req.bits.isWrite.poke(true.B)
-      c.io.req.valid.poke(true.B)
+      // c.io.req.bits.dataRequest.poke("b11111110000000001111111111000000".U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // c.io.req.bits.addrRequest.poke(200.U)
+      // c.io.req.bits.isWrite.poke(true.B)
+      // c.io.req.valid.poke(true.B)
 
       var count = 1
-      while(count != 1000) {
+      while(count != 900) {
           val mosi = c.io.mosi.peek()
           c.io.miso.poke(mosi)
-          // println("This is the real answer ************"+c.io.mosi.peek())
           c.clock.step(1)
           count += 1
       }
 
-
+///////////////////////////////////////////////////////
 
 
 
