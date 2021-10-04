@@ -17,6 +17,7 @@ class IntrHardware(width: Int = 1, flopOutput: Boolean = true) extends Module {
     val intr_o = Output(UInt(width.W))
   })
 
+  
   // generating an event if software writes to INTR_TEST register as well as peripheral logic
   // is generating an event
   // Replicating qe from software for all the q bits and ANDing it with q to see which
