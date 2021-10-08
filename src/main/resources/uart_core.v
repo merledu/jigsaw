@@ -1,4 +1,4 @@
-`timescale 10ns/1ns
+
 module uart_core (
     input  clk_i,
     input  rst_ni,

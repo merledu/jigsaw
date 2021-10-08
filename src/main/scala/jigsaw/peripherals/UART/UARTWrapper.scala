@@ -52,7 +52,7 @@ class UARTWrapper(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val conf
     // for sending request
     // when(io.request.fire() & io.request.bits.isWrite){                                       // if req is of write
     //     val maskedData = io.request.bits.dataRequest.asTypeOf(Vec(4, UInt(8.W)))            // breaking into Vecs to apply masking
-    //     data := io.request.bits.activeByteLane.asBools zip maskedData map {                // applying maskiing a/c to mask bits (activeByteLane)
+    //     data := io.request.bits.activeByteLane.asBools zi+p maskedData map {                // applying maskiing a/c to mask bits (activeByteLane)
     //         case (b:Bool, i:UInt) => Mux(b, i, 0.U)
     //     }
 
