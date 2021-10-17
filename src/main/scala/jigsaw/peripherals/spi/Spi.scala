@@ -1,6 +1,6 @@
 package jigsaw.peripherals.spi
 
-import caravan.bus.common.{AddressMap, BusDecoder, DeviceAdapter, Switch1toN, DummyMemController, Peripherals} // imported DummyMemController
+// import caravan.bus.common.{AddressMap, BusDecoder, DeviceAdapter, Switch1toN, DummyMemController, Peripherals} // imported DummyMemController
 import caravan.bus.common.{AbstrRequest, AbstrResponse}
 import caravan.bus.tilelink._
 import chisel3._

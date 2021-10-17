@@ -26,8 +26,8 @@ class Protocol(implicit val spiConfig: Config) extends Module{
     // val configReg = Reg(Bool())
     // configReg := io.resetProtocol
     // when(io.resetProtocol === 0.B){
-    val CPOL = io.CPOL
-    val CPHA = io.CPHA
+    val CPOL = WireInit(io.CPOL)
+    val CPHA = WireInit(io.CPHA)
 
     val idle :: busy :: Nil = Enum(2)
     val state = RegInit(idle)
@@ -36,7 +36,9 @@ class Protocol(implicit val spiConfig: Config) extends Module{
     val count = RegInit(0.U(7.W))
     val dataReg = RegInit(0.U((spiConfig.DW*2).W))
 
-    io.sck := clock.asUInt()(0)
+    val clk = WireInit(clock.asUInt()(0))
+    io.sck := Mux(state === busy, Mux(CPOL,~clk,clk), 0.B)
+    // io.sck := Mux(CPOL,~clk,clk) // Mode 1 and 4
     // io.sck := 0.B
 
     io.data_in.ready := 0.B
@@ -45,7 +47,7 @@ class Protocol(implicit val spiConfig: Config) extends Module{
     io.ss := 1.B
     io.mosi := 0.B
 
-    when (~CPOL & ~CPHA){
+    // when (~CPOL & ~CPHA){
         // Transmission
         switch(state){
             is(idle){
@@ -91,7 +93,7 @@ class Protocol(implicit val spiConfig: Config) extends Module{
         }
         // io.data_out.bits := Reverse(miso_dataReg)
         // io.data_out.bits := miso_dataReg
-    }
+    // }
     // }.otherwise{
     //     io.data_out.bits := DontCare
     //     io.data_out.valid := DontCare

@@ -57,12 +57,14 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
     test(new SpiHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.io.req.bits.addrRequest.poke(0.U)
       c.io.req.bits.dataRequest.poke(0.U)
+      c.io.req.bits.activeByteLane.poke("b1111".U)
       c.io.req.bits.isWrite.poke(1.B)
       c.io.req.valid.poke(1.B)
       c.clock.step(1)
       c.io.req.valid.poke(0.B)
       c.clock.step(1)
       c.io.req.bits.dataRequest.poke(659.U)
+      c.io.req.bits.activeByteLane.poke("b1111".U)
       // c.io.req.bits.dataRequest.poke("b00000011101110111011101110111011".U)
       c.io.req.bits.addrRequest.poke(3.U)
       c.io.req.bits.isWrite.poke(1.B)
@@ -89,7 +91,7 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
       // c.io.req.valid.poke(true.B)
 
       var count = 1
-      while(count != 900) {
+      while(count != 1000) {
           val mosi = c.io.mosi.peek()
           c.io.miso.poke(mosi)
           c.clock.step(1)

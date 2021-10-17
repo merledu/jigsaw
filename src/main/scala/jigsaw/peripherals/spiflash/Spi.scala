@@ -1,12 +1,12 @@
 package jigsaw.peripherals.spiflash
 
-import caravan.bus.common.{AddressMap, BusDecoder, DeviceAdapter, Switch1toN, DummyMemController, Peripherals} // imported DummyMemController
+// import caravan.bus.common.{AddressMap, BusDecoder, DeviceAdapter, Switch1toN, DummyMemController, Peripherals} // imported DummyMemController
 import caravan.bus.common.{AbstrRequest, AbstrResponse}
 // import caravan.bus.tilelink._
 import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.stage.ChiselStage
-import chisel3.util.{Cat, Decoupled}
+import chisel3.util.{Cat, Decoupled, Fill}
 import jigsaw.peripherals.spi._
 import jigsaw.peripherals.common._
 
@@ -28,26 +28,41 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
           (gen: A, gen1: B)(implicit val spiConfig: Config) extends Module{
 
     val io = IO(new Spi_IO(gen, gen1))
-    // val spiProtocol = Module(new Protocol())
     val ControlReg = RegInit(0.U(32.W))
 
     val vv = Mux(io.req.bits.addrRequest === 0.U, 0.B, 1.B)
+    val maskedData = Wire(Vec(4, UInt(8.W)))
+    maskedData := io.req.bits.activeByteLane.asTypeOf(Vec(4, Bool())) map (Fill(8,_))
 
     when (io.req.bits.addrRequest === 0.U && io.req.bits.isWrite === 1.B){
-        ControlReg := io.req.bits.dataRequest
+        // val data = io.req.bits.dataRequest.asTypeOf(Vec(4, UInt(8.W)))
+        // maskedData := io.req.bits.activeByteLane.asBools zip data map { case (i:Bool, d:UInt) => Mux(i, d, 0.U)}
+    // maskedData := io.req.bits.activeByteLane.asTypeOf(Vec(4, Bool())) map (Fill(8,_))       // breaking into Vecs to apply masking
+    // val data = io.req.bits.activeByteLane zip maskedData map {                  // applying maskiing a/c to mask bits (activeByteLane)
+    //             case (b:Bool, i:UInt) => Mux(b, i, 0.U)
+    //     }
+        // maskedData := io.req.bits.activeByteLane.asTypeOf(Vec(4, Bool())) map (Fill(8,_))
+        ControlReg := io.req.bits.dataRequest & maskedData.asUInt
 
-        io.req.ready := 1.B
         io.rsp.bits.dataResponse := io.req.bits.dataRequest
         io.rsp.bits.error := 0.B
-        io.rsp.valid := 1.B
+        
 
-        io.cs_n := DontCare
-        io.sclk := DontCare
-        io.mosi := DontCare
+        List(io.req.ready, io.rsp.valid) map (_ := 1.B)
+        List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
+
+        // io.req.ready := 1.B
+        // io.rsp.valid := 1.B
+        // io.cs_n := DontCare
+        // io.sclk := DontCare
+        // io.mosi := DontCare
     }.elsewhen(io.req.bits.addrRequest === 3.U && io.req.bits.isWrite === 1.B){
+        // val data = io.req.bits.dataRequest.asTypeOf(Vec(4, UInt(8.W)))
+        // maskedData := io.req.bits.activeByteLane.asTypeOf(Vec(4, Bool())) map (Fill(8,_))
+        // val spiProtocol = withClock(clockGen(1.U).asClock()) { Module(new Protocol())}
         val spiProtocol = Module(new Protocol())
 
-        spiProtocol.io.data_in.bits  := io.req.bits.dataRequest
+        spiProtocol.io.data_in.bits  := io.req.bits.dataRequest & maskedData.asUInt
         spiProtocol.io.data_in.valid := vv
         io.req.ready := spiProtocol.io.data_in.ready
 
@@ -61,20 +76,42 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
         spiProtocol.io.CPHA := ControlReg(0)
         spiProtocol.io.miso := io.miso
 
-        io.mosi := spiProtocol.io.mosi
-        io.sclk := spiProtocol.io.sck
-        io.cs_n := spiProtocol.io.ss
+        // io.mosi := spiProtocol.io.mosi
+        // io.sclk := spiProtocol.io.sck
+        // io.cs_n := spiProtocol.io.ss
+
+        List(io.mosi, io.sclk, io.cs_n) zip List(spiProtocol.io.mosi, spiProtocol.io.sck, spiProtocol.io.ss) map (a => a._1 := a._2)   
 
     }.otherwise{
-        io.req.ready := 1.B
+        List(io.req.ready, io.rsp.bits.error, io.rsp.valid) map (_ := 1.B)
+        List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
         io.rsp.bits.dataResponse := io.req.bits.addrRequest
-        io.rsp.bits.error := 1.B
-        io.rsp.valid := 1.B
 
-        io.cs_n := DontCare
-        io.sclk := DontCare
-        io.mosi := DontCare
+        maskedData map (_ := DontCare)
+        // io.req.ready := 1.B
+        // io.rsp.bits.error := 1.B
+        // io.rsp.valid := 1.B
+
+        // io.cs_n := DontCare
+        // io.sclk := DontCare
+        // io.mosi := DontCare
+
     }
+    // maskedData map (_ := DontCare)
+
+    def counter(max: UInt) = {
+        val x = RegInit(0.asUInt(max.getWidth.W))
+        x := Mux(x === max, 0.U, x + 1.U)
+        x
+    }
+    def pulse(n: UInt) = counter(n - 1.U) === 0.U
+    def toggle(p: Bool) = {
+        val x = RegInit(false.B)
+        x := Mux(p, !x, x)
+        x
+    }
+    def clockGen(period: UInt) = toggle(pulse(period >> 1))
+
 }
 
 
