@@ -13,19 +13,15 @@ class Protocol_IO(DW:Int) extends Bundle{
     val sck = Output(Bool())
     val data_in = Flipped(Decoupled(UInt(DW.W)))
     val data_out = Decoupled(UInt(DW.W))
-    // val config = Input(UInt(DW.W))
     val CPOL = Input(Bool())
     val CPHA = Input(Bool())
-    val resetProtocol = Input(Bool())
+    // val config = Input(UInt(DW.W))
+    // val resetProtocol = Input(Bool())
 }
 
 class Protocol(implicit val spiConfig: Config) extends Module{
-    // val DW = 32
     val io = IO(new Protocol_IO(spiConfig.DW))
     
-    // val configReg = Reg(Bool())
-    // configReg := io.resetProtocol
-    // when(io.resetProtocol === 0.B){
     val CPOL = WireInit(io.CPOL)
     val CPHA = WireInit(io.CPHA)
 
@@ -47,61 +43,50 @@ class Protocol(implicit val spiConfig: Config) extends Module{
     io.ss := 1.B
     io.mosi := 0.B
 
-    // when (~CPOL & ~CPHA){
-        // Transmission
-        switch(state){
-            is(idle){
+    // Transmission
+    switch(state){
+        is(idle){
+            io.data_in.ready := 1.B
+            when (io.data_in.valid/* & io.data_in.ready*/){
+                dataReg := Cat(io.data_in.bits, Fill(32,0.B)) // it should be this
+                state := busy
+                // io.data_in.ready := 1.B
+                // io.ss := 0.B
+                // dataReg := Cat("b00000011".U,Fill(24,0.B),io.data_in.bits) // Fill should be at the end
+                // dataReg := Cat("b00000011".U,io.data_in.bits(23,0),Fill(32,0.B))
+                
+            }
+        }
+        is(busy){
+            when (count === (spiConfig.DW*2).U){
                 io.data_in.ready := 1.B
-                when (io.data_in.valid/* & io.data_in.ready*/){
-                    // io.data_in.ready := 1.B
-                    // io.ss := 0.B
-                    // dataReg := Cat("b00000011".U,Fill(24,0.B),io.data_in.bits) // Fill should be at the end
-                    // dataReg := Cat("b00000011".U,io.data_in.bits(23,0),Fill(32,0.B))
-                    dataReg := Cat(io.data_in.bits, Fill(32,0.B)) // it should be this
-                    state := busy
-                }
-            }
-            is(busy){
-                when (count === (spiConfig.DW*2).U){
-                    io.data_in.ready := 1.B
-                    io.ss := 1.B
-                    state := idle
-                    count := 0.U
-                }.otherwise{
-                    io.ss := 0.B
-                    io.mosi := dataReg((spiConfig.DW*2)-1)
-                    dataReg := dataReg << 1
-                    count := count + 1.U
-                }
-            }
-        }
-
-        // Receiving
-        val count1 = RegInit(0.U(7.W))
-        switch(state){
-            is(busy){
+                io.ss := 1.B
+                state := idle
+                count := 0.U
+            }.otherwise{
                 io.ss := 0.B
-                when (count1 === (spiConfig.DW*2).U /*& io.data_out.ready*/){
-                    io.data_out.bits := miso_dataReg
-                    io.data_out.valid := 1.B
-                    count1 := 0.U
-                }.otherwise{
-                    miso_dataReg := miso_dataReg << 1 | io.miso
-                    count1 := count1 + 1.U
-                }
+                io.mosi := dataReg((spiConfig.DW*2)-1)
+                dataReg := dataReg << 1
+                count := count + 1.U
             }
         }
-        // io.data_out.bits := Reverse(miso_dataReg)
-        // io.data_out.bits := miso_dataReg
-    // }
-    // }.otherwise{
-    //     io.data_out.bits := DontCare
-    //     io.data_out.valid := DontCare
-    //     io.mosi := DontCare
-    //     io.ss := DontCare
-    //     io.sck := DontCare
-    //     io.data_in.ready := 1.B
-    // }
+    }
+
+    // Receiving
+    val count1 = RegInit(0.U(7.W))
+    switch(state){
+        is(busy){
+            io.ss := 0.B
+            when (count1 === (spiConfig.DW*2).U /*& io.data_out.ready*/){
+                io.data_out.bits := miso_dataReg
+                io.data_out.valid := 1.B
+                count1 := 0.U
+            }.otherwise{
+                miso_dataReg := miso_dataReg << 1 | io.miso
+                count1 := count1 + 1.U
+            }
+        }
+    }
 }
 
 

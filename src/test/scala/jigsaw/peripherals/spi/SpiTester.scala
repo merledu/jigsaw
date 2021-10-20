@@ -55,72 +55,98 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
     // implicit val config = TilelinkConfig()
     implicit val spiConfig = jigsaw.peripherals.spiflash.Config()
     test(new SpiHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
-      c.io.req.bits.addrRequest.poke(0.U)
-      c.io.req.bits.dataRequest.poke(0.U)
-      c.io.req.bits.activeByteLane.poke("b1111".U)
-      c.io.req.bits.isWrite.poke(1.B)
-      c.io.req.valid.poke(1.B)
-      c.clock.step(1)
-      c.io.req.valid.poke(0.B)
-      c.clock.step(1)
+      // c.io.req.bits.addrRequest.poke(0.U)
+      // c.io.req.bits.dataRequest.poke(0.U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // c.io.req.bits.isWrite.poke(1.B)
+      // c.io.req.valid.poke(1.B)
+      // c.clock.step(1)
+      // c.io.req.valid.poke(0.B)
+      // c.clock.step(1)
+      // c.io.req.bits.dataRequest.poke(659.U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // // c.io.req.bits.dataRequest.poke("b00000011101110111011101110111011".U)
+      // c.io.req.bits.addrRequest.poke(3.U)
+      // c.io.req.bits.isWrite.poke(1.B)
+      // c.io.req.valid.poke(1.B)
+      // c.clock.step(5)
+      // c.io.req.valid.poke(0.B)
+
+
+    ///////////Set Control Register////////////
+      // c.io.req.bits.addrRequest.poke(0.U)
+      // c.io.req.bits.dataRequest.poke("b0000".U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // c.io.req.bits.isWrite.poke(1.B)
+      // c.io.req.valid.poke(1.B)
+      // c.io.rsp.ready.poke(1.B)
+      // c.clock.step(2)
+      // c.io.req.valid.poke(0.B)
+    ///////////Read Control Register////////////
+      // c.io.req.bits.addrRequest.poke(0.U)
+      // c.io.req.bits.dataRequest.poke(0.U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // c.io.req.bits.isWrite.poke(0.B)
+      // c.io.req.valid.poke(1.B)
+      // c.io.rsp.ready.poke(1.B)
+      // c.clock.step(2)
+      // c.io.req.valid.poke(0.B)
+    ///////////Set Tx Register////////////
+      c.io.req.bits.addrRequest.poke(4.U)
       c.io.req.bits.dataRequest.poke(659.U)
       c.io.req.bits.activeByteLane.poke("b1111".U)
-      // c.io.req.bits.dataRequest.poke("b00000011101110111011101110111011".U)
-      c.io.req.bits.addrRequest.poke(3.U)
       c.io.req.bits.isWrite.poke(1.B)
       c.io.req.valid.poke(1.B)
-      c.clock.step(5)
-      c.io.req.valid.poke(0.B)
-
-
-
-//////////////////////////////////////////////
-      // c.io.req.bits.dataRequest.poke("b10111011101110111011101110111011".U)
+      c.clock.step(2)
+      // c.io.req.valid.poke(0.B)
+    ///////////Set Control Register////////////
+      // c.io.req.bits.addrRequest.poke(0.U)
+      // c.io.req.bits.dataRequest.poke("b0000100".U)
       // c.io.req.bits.activeByteLane.poke("b1111".U)
-      // c.io.req.bits.addrRequest.poke(659.U)
-      // c.io.req.bits.isWrite.poke(true.B)
-      // c.io.req.valid.poke(true.B)
-
-      // c.clock.step(5)
-
-      
-      // c.io.req.bits.dataRequest.poke("b11111110000000001111111111000000".U)
+      // c.io.req.bits.isWrite.poke(1.B)
+      // c.io.req.valid.poke(1.B)
+      // c.io.rsp.ready.poke(1.B)
+      // c.clock.step(2)
+      // c.io.req.bits.dataRequest.poke("b0000000".U)
+      // c.io.req.bits.isWrite.poke(1.B)
+      // c.io.req.valid.poke(1.B)
+      // c.clock.step(3)
+      // c.io.req.valid.poke(0.B)
+    ///////////Read Tx Register////////////
+      // c.io.req.bits.addrRequest.poke(3.U)
+      // c.io.req.bits.dataRequest.poke(0.U)
       // c.io.req.bits.activeByteLane.poke("b1111".U)
-      // c.io.req.bits.addrRequest.poke(200.U)
-      // c.io.req.bits.isWrite.poke(true.B)
-      // c.io.req.valid.poke(true.B)
+      // c.io.req.bits.isWrite.poke(0.B)
+      // c.io.req.valid.poke(1.B)
+      // c.io.rsp.ready.poke(1.B)
+      // c.clock.step(2)
+      // c.io.req.valid.poke(0.B)
+    ///////////Read Rx Register////////////
+      // c.io.req.bits.addrRequest.poke(7.U)
+      // c.io.req.bits.dataRequest.poke(0.U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // c.io.req.bits.isWrite.poke(0.B)
+      // c.io.req.valid.poke(1.B)
+      // c.io.rsp.ready.poke(1.B)
+      // c.clock.step(20)
+      // c.io.req.valid.poke(0.B)
+
 
       var count = 1
       while(count != 1000) {
+        //
+        c.io.req.bits.addrRequest.poke(8.U)
+        c.io.req.bits.isWrite.poke(0.B)
+        c.io.req.valid.poke(1.B)
+        c.io.rsp.ready.poke(1.B)
+        //
           val mosi = c.io.mosi.peek()
           c.io.miso.poke(mosi)
           c.clock.step(1)
           count += 1
       }
 
-///////////////////////////////////////////////////////
 
-
-
-
-      // c.clock.step(5)
-    //   c.io.valid.poke(true.B)
-    //   c.io.addrReq.poke(0.U)
-    //   c.io.dataReq.poke("b1010101010101010101010100001101".U)
-    //   c.io.byteLane.poke("b1111111111111111111111111111111".U)
-    //   c.io.isWrite.poke(true.B)
-    //   c.clock.step(1)
-    // //   c.io.valid.poke(true.B)
-    // //   c.clock.step(5)
-    //   c.io.valid.poke(true.B)
-    //   c.io.addrReq.poke(0.U)
-    //   c.io.dataReq.poke("b1111100111100000000001111111111".U)
-    //   c.io.byteLane.poke("b1111111111111111111111111111111".U)
-    //   c.io.isWrite.poke(true.B)
-    //   c.clock.step(1)
-    //   c.io.valid.poke(false.B)
-
-      // c.clock.step(900)
     }
   }
 }
