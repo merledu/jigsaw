@@ -5,7 +5,7 @@ import chisel3._
 import chisel3.experimental.ChiselEnum
 import chisel3.stage.ChiselStage
 import chisel3.util.{Cat, Decoupled, Fill, MuxCase, Enum}
-import jigsaw.peripherals.spi._
+import jigsaw.peripherals.spiflash._
 // import jigsaw.peripherals.common._
 
 class Spi_IO[A <: AbstrRequest, B <: AbstrResponse]
@@ -32,29 +32,28 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
     val RxDataReg    = RegInit(0.U(32.W))
     val RxDataValidReg = RegInit(0.B)
 
-    val vv = Mux(io.req.bits.addrRequest === 0.U, 0.B, 1.B)
     val maskedData = Wire(Vec(4, UInt(8.W)))
     maskedData := io.req.bits.activeByteLane.asTypeOf(Vec(4, Bool())) map (Fill(8,_))
 
-    val setControlStatusReg :: readControlStatusReg :: setTxDataReg :: readTxDataReg :: readRxDataReg :: Nil = Enum(5)
-
+    io.req.ready := 1.B
+    io.rsp.valid := 0.B
 
     when (io.req.bits.addrRequest(3,0) === 0.U && io.req.bits.isWrite === 1.B){
         ControlReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, 0.U)
 
         io.rsp.bits.dataResponse := Mux(io.rsp.ready, io.req.bits.addrRequest, 0.U)
-        io.rsp.bits.error := Mux(io.req.valid, 0.B, 1.B)
+        io.rsp.valid := 1.B
         
 
-        List(io.req.ready, io.rsp.valid) map (_ := 1.B)
+        // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 0.U && io.req.bits.isWrite === 0.B){
         io.rsp.bits.dataResponse := Mux(io.rsp.ready, ControlReg, 0.U)
-        io.rsp.bits.error := Mux(io.req.valid, 0.B, 1.B)
+        io.rsp.valid := Mux(io.req.valid, 1.B, 0.U)
         
 
-        List(io.req.ready, io.rsp.valid) map (_ := 1.B)
+        // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare) 
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 4.U && io.req.bits.isWrite === 1.B){
@@ -76,47 +75,38 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
         }
         
 
-        // TxDataReg := Mux(io.req.valid, Cat("b00000011".U,(io.req.bits.dataRequest & maskedData.asUInt)(23,0)), 0.U)
-        // TxDataValidReg := io.req.valid
-
         io.rsp.bits.dataResponse := Mux(io.rsp.ready, io.req.bits.addrRequest, 0.U)
-        io.rsp.bits.error := Mux(io.req.valid, 0.B, 1.B)
+        io.rsp.valid := 1.B
 
-        List(io.req.ready, io.rsp.valid) map (_ := 1.B)
+        // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 4.U && io.req.bits.isWrite === 0.B){
         io.rsp.bits.dataResponse := Mux(io.rsp.ready, TxDataReg, 0.U)
-        io.rsp.bits.error := Mux(io.req.valid, 0.B, 1.B)
-        
+        io.rsp.valid := 1.B
 
-        List(io.req.ready, io.rsp.valid) map (_ := 1.B)
+        // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 8.U && io.req.bits.isWrite === 0.B){
         io.rsp.bits.dataResponse := Mux(io.rsp.ready, RxDataReg, 0.U)
-        io.rsp.bits.error := Mux(io.req.valid, 0.B, 1.B)
         io.rsp.valid := RxDataValidReg
+        io.rsp.valid := 1.B
 
-        List(io.req.ready) map (_ := 1.B)
+        // List(io.req.ready) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
     }
     .otherwise{
-        List(io.req.ready, io.rsp.bits.error, io.rsp.valid) map (_ := 1.B)
-        List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
+        // List(io.rsp.bits.error, io.rsp.valid) map (_ := 0.B)
+        // List(io.rsp.valid) map (_ := 0.B)
+        List(io.cs_n, io.sclk, io.mosi, io.rsp.valid) map (_ := DontCare)
         io.rsp.bits.dataResponse := io.req.bits.addrRequest
-
-        maskedData map (_ := DontCare)
     }
 
-
+    // SPI Protocol Logic
     val spiProtocol = Module(new Protocol())
 
     spiProtocol.io.data_in.bits  := TxDataReg
-    // when(TxDataValidReg){
-    //     spiProtocol.io.data_in.valid := 1.B
-    //     TxDataValidReg := 0.B
-    // }.otherwise{spiProtocol.io.data_in.valid := 0.B}
     spiProtocol.io.data_in.valid := TxDataValidReg
     spiProtocol.io.CPOL := ControlReg(1)
     spiProtocol.io.CPHA := ControlReg(0)
@@ -127,18 +117,32 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
         RxDataReg := spiProtocol.io.data_out.bits
         RxDataValidReg := 1.B
         }
+    //
+
+    // Error Logic
+    val addr_hit = Wire(Vec(3, Bool()))
+    val spiRegMap = Seq(0,4,8)
+    val wireAddr = WireInit(io.req.bits.addrRequest(3,0))
+    val addr_miss = Wire(Bool())
+    
+    def go(min:Int, max:Int):Unit = {
+        if (min == max){
+            return
+        }else{
+            addr_hit(min) := wireAddr === spiRegMap(min).asUInt()
+            go(min+1, max)
+        }
+    }
+
+    go(0,3)
 
 
+    addr_miss := ~addr_hit.reduce(_ | _)//~addr_hit.contains(true.B)
+    when(wireAddr === 8.U & io.req.bits.isWrite){io.rsp.bits.error := io.req.valid}
+    .otherwise{io.rsp.bits.error := io.req.valid & addr_miss}
+    //
 
-
-
-
-
-
-
-
-
-
+}
 
 
 
@@ -155,152 +159,3 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
     //     x
     // }
     // def clockGen(period: UInt) = toggle(pulse(period >> 1))
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // when(io.req.bits.addrRequest === 3.U & io.req.bits.isWrite === 1.B){
-    //     val spiProtocol = Module(new Protocol())
-    //     spiProtocol.io.CPOL := ControlReg(1)
-    //     spiProtocol.io.CPHA := ControlReg(0)
-
-    //     spiProtocol.io.data_in.bits     := io.req.bits.dataRequest
-    //     spiProtocol.io.data_in.valid    := io.req.valid
-    //     io.req.ready                    := spiProtocol.io.data_in.ready 
-
-    //     io.rsp.valid                    := spiProtocol.io.data_out.valid
-    //     io.rsp.bits.dataResponse        := spiProtocol.io.data_out.bits
-    //     io.rsp.bits.error               := 0.B
-    //     spiProtocol.io.data_out.ready   := io.rsp.ready
-
-    //     io.cs_n := spiProtocol.io.ss
-    //     io.sclk := spiProtocol.io.sck
-    //     io.mosi := spiProtocol.io.mosi
-        
-    //     spiProtocol.io.miso := io.miso
-
-    //     spiProtocol.io.resetProtocol := 0.B
-    //     }
-    // .elsewhen(io.req.bits.addrRequest === 0.U & io.req.bits.isWrite === 1.B){
-        // val spiProtocol = Module(new Protocol())
-        // ControlReg := io.req.bits.dataRequest
-        
-        // spiProtocol.io.config           := io.req.bits.dataRequest
-
-        // spiProtocol.io.data_in.bits     := DontCare
-        // spiProtocol.io.data_in.valid    := DontCare
-        // io.req.ready                    := spiProtocol.io.data_in.ready
-        // io.req.ready                       := 1.B
-
-        // io.rsp.valid                    := 1.B
-        // io.rsp.bits.dataResponse        := io.req.bits.dataRequest
-        // io.rsp.bits.error               := 0.B
-        // spiProtocol.io.data_out.ready   := io.rsp.ready
-
-        // io.cs_n := DontCare
-        // io.sclk := DontCare
-        // io.mosi := DontCare
-        
-        // spiProtocol.io.miso := io.miso
-
-        // spiProtocol.io.CPOL := DontCare
-        // spiProtocol.io.CPHA := DontCare
-
-        // spiProtocol.io.resetProtocol := 1.B
-
-    // }
-    // .elsewhen(io.req.bits.addrRequest(31,24) === 2.U & io.req.bits.isWrite === 1.B){}
-    // .otherwise{
-        // spiProtocol.io.config           := DontCare
-        // spiProtocol.io.data_in.bits     := DontCare
-        // spiProtocol.io.data_in.valid    := DontCare
-        // spiProtocol.io.data_out.ready   := DontCare
-        // spiProtocol.io.miso             := io.miso
-
-        // io.rsp.valid                    := 1.B
-        // io.rsp.bits.dataResponse        := io.req.bits.addrRequest  // error on this address
-        // io.rsp.bits.error               := 1.B
-
-        // io.req.ready := 1.B
-        
-        // io.cs_n := 1.B
-        // io.sclk := DontCare
-        // io.mosi := DontCare
-        
-        // spiProtocol.io.CPOL := DontCare
-        // spiProtocol.io.CPHA := DontCare
-
-        // spiProtocol.io.miso := io.miso
-
-        // spiProtocol.io.resetProtocol := 1.B
-    // }
-
-
-
-    // when(io.req.bits.addrRequest === 0.B & io.req.bits.isWrite === 1.B){
-    //     spiProtocol.io.config           := Mux(io.req.valid,io.req.bits.dataRequest,DontCare)
-    //     spiProtocol.io.data_in.bits     := DontCare
-    //     spiProtocol.io.data_in.valid    := 0.B
-    //     io.req.ready                    := spiProtocol.io.data_in.ready 
-
-    //     io.rsp.valid                    := 1.B
-    //     io.rsp.bits.dataResponse        := 0.U
-    //     io.rsp.bits.error               := 0.B
-    //     spiProtocol.io.data_out.ready   := 1.B
-    // }
-    // .otherwise{
-//////////////////////////////////
-        // spiProtocol.io.config := 0.U
-
-        // spiProtocol.io.data_in.bits     := io.req.bits.addrRequest
-        // spiProtocol.io.data_in.valid    := io.req.valid
-        // io.req.ready                    := spiProtocol.io.data_in.ready 
-
-        // io.rsp.valid                    := spiProtocol.io.data_out.valid
-        // io.rsp.bits.dataResponse        := spiProtocol.io.data_out.bits
-        // io.rsp.bits.error               := 0.B
-        // spiProtocol.io.data_out.ready   := io.rsp.ready
-//////////////////////////////////
-    // }
-    // master spi IO bindings
-    // io.cs_n := spiProtocol.io.ss
-    // io.sclk := spiProtocol.io.sck
-    // io.mosi := spiProtocol.io.mosi
-    
-    // spiProtocol.io.miso := io.miso
-
-// }
