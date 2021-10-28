@@ -37,20 +37,21 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
 
     io.req.ready := 1.B
     io.rsp.valid := 0.B
+    // io.rsp.bits.ackWrite := 1.B
 
     when (io.req.bits.addrRequest(3,0) === 0.U && io.req.bits.isWrite === 1.B){
         ControlReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, 0.U)
 
-        io.rsp.bits.dataResponse := Mux(io.rsp.ready, io.req.bits.addrRequest, 0.U)
-        io.rsp.valid := 1.B
+        io.rsp.bits.dataResponse := RegNext(Mux(io.rsp.ready, io.req.bits.dataRequest, 0.U))
+        io.rsp.valid := RegNext(io.req.valid)
         
 
         // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 0.U && io.req.bits.isWrite === 0.B){
-        io.rsp.bits.dataResponse := Mux(io.rsp.ready, ControlReg, 0.U)
-        io.rsp.valid := Mux(io.req.valid, 1.B, 0.U)
+        io.rsp.bits.dataResponse := RegNext(Mux(io.rsp.ready, ControlReg, 0.U))
+        io.rsp.valid := RegNext(Mux(io.req.valid, 1.B, 0.U))
         
 
         // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
@@ -75,23 +76,23 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
         }
         
 
-        io.rsp.bits.dataResponse := Mux(io.rsp.ready, io.req.bits.addrRequest, 0.U)
-        io.rsp.valid := 1.B
+        io.rsp.bits.dataResponse := RegNext(Mux(io.rsp.ready, io.req.bits.addrRequest, 0.U))
+        io.rsp.valid := RegNext(1.B)
 
         // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 4.U && io.req.bits.isWrite === 0.B){
-        io.rsp.bits.dataResponse := Mux(io.rsp.ready, TxDataReg, 0.U)
-        io.rsp.valid := 1.B
+        io.rsp.bits.dataResponse := RegNext(Mux(io.rsp.ready, TxDataReg, 0.U))
+        io.rsp.valid := RegNext(io.req.valid)
 
         // List(io.req.ready, io.rsp.valid) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 8.U && io.req.bits.isWrite === 0.B){
-        io.rsp.bits.dataResponse := Mux(io.rsp.ready, RxDataReg, 0.U)
+        io.rsp.bits.dataResponse := RegNext(Mux(io.rsp.ready, RxDataReg, 0.U))
         io.rsp.valid := RxDataValidReg
-        io.rsp.valid := 1.B
+        // io.rsp.valid := 1.B
 
         // List(io.req.ready) map (_ := 1.B)
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare)
@@ -138,8 +139,8 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
 
 
     addr_miss := ~addr_hit.reduce(_ | _)//~addr_hit.contains(true.B)
-    when(wireAddr === 8.U & io.req.bits.isWrite){io.rsp.bits.error := io.req.valid}
-    .otherwise{io.rsp.bits.error := io.req.valid & addr_miss}
+    when(wireAddr === 8.U & io.req.bits.isWrite){io.rsp.bits.error := RegNext(io.req.valid)}
+    .otherwise{io.rsp.bits.error := RegNext(io.req.valid & addr_miss)}
     //
 
 }
