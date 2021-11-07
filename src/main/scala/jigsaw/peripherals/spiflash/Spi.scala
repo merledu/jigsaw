@@ -58,19 +58,23 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare) 
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 4.U && io.req.bits.isWrite === 1.B){
-        when(ControlReg(3,2) === 0.U){ // READ
+        when(ControlReg(4,2) === 0.U){ // READ
             TxDataReg := Mux(io.req.valid, Cat("b00000011".U,(io.req.bits.dataRequest & maskedData.asUInt)(23,0)), 0.U)
             TxDataValidReg := io.req.valid
         }
-        .elsewhen(ControlReg(3,2) === 1.U){ // WR_EN
+        .elsewhen(ControlReg(4,2) === 1.U){ // WR_EN
             TxDataReg := Mux(io.req.valid, Cat("b00000110".U, Fill(24,0.B)), 0.U)
             TxDataValidReg := io.req.valid
         }
-        .elsewhen(ControlReg(3,2) === 2.U){ // PP
+        .elsewhen(ControlReg(4,2) === 2.U){ // PP_ADDR
             TxDataReg := Mux(io.req.valid, Cat("b00000010".U,(io.req.bits.dataRequest & maskedData.asUInt)(23,0)), 0.U)
             TxDataValidReg := io.req.valid
         }
-        .elsewhen(ControlReg(3,2) === 3.U){ // WR_DI
+        .elsewhen(ControlReg(4,2) === 3.U){ // PP_DATA
+            TxDataReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, 0.U)
+            TxDataValidReg := io.req.valid
+        }
+        .elsewhen(ControlReg(4,2) === 4.U){ // WR_DI
             TxDataReg := Mux(io.req.valid, Cat("b00000100".U, Fill(24,0.B)), 0.U)
             TxDataValidReg := io.req.valid
         }
@@ -144,19 +148,3 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
     //
 
 }
-
-
-
-
-    // def counter(max: UInt) = {
-    //     val x = RegInit(0.asUInt(max.getWidth.W))
-    //     x := Mux(x === max, 0.U, x + 1.U)
-    //     x
-    // }
-    // def pulse(n: UInt) = counter(n - 1.U) === 0.U
-    // def toggle(p: Bool) = {
-    //     val x = RegInit(false.B)
-    //     x := Mux(p, !x, x)
-    //     x
-    // }
-    // def clockGen(period: UInt) = toggle(pulse(period >> 1))
