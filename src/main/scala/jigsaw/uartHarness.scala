@@ -5,7 +5,7 @@ import caravan.bus.wishbone.{WBRequest, WBResponse, WishboneConfig, WishboneDevi
 import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util.Decoupled
-import jigsaw.peripherals.UART.UARTWrapper
+import jigsaw.peripherals.UART._
 
 class uartHarness(implicit val config: WishboneConfig) extends Module {
   val io = IO(new Bundle {
@@ -23,7 +23,7 @@ class uartHarness(implicit val config: WishboneConfig) extends Module {
   })
   val hostAdapter = Module(new WishboneHost())
   val deviceAdapter = Module(new WishboneDevice())
-  val uart_wrapper = Module(new UARTWrapper(new WBRequest(), new WBResponse()))
+  val uart_wrapper = Module(new uart(new WBRequest(), new WBResponse()))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
