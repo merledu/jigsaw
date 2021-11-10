@@ -14,8 +14,6 @@ class uartRX extends Module{
 
     val idle :: start :: data :: stop :: cleanup :: Nil = Enum(5)
 
-    // val r_Rx_Data_R = RegInit(1.B)
-    // val r_Rx_Data = RegInit(1.B)
 
     val rxReg = RegNext(RegNext(io.i_Rx_Serial, 1.U), 1.U)
     val shiftReg = RegInit(0.U(8.W))
@@ -23,7 +21,6 @@ class uartRX extends Module{
     val r_SM_Main = RegInit(idle)
     val r_Clock_Count = RegInit(0.U(16.W))
     val r_Bit_Index = RegInit(0.U(3.W))
-    //val r_Rx_Byte = RegInit(0.U(8.W))
     val r_Rx_DV = RegInit(0.B)
 
     switch(r_SM_Main){
