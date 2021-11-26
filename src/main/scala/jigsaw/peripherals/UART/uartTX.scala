@@ -92,6 +92,7 @@ class uartTX extends Module{
         }
 
         is(cleanup){								//at cleanup back to idle
+            io.o_TX_Serial := 1.B
             r_TX_Done := 1.B
             r_SM_Main := idle
         }
