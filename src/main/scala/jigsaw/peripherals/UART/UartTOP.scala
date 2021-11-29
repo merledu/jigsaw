@@ -1,4 +1,3 @@
-package jigsaw.peripherals.UART
 
 import chisel3._
 import chisel3.util._
