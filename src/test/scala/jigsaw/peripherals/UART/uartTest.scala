@@ -15,7 +15,7 @@
 
 //   "UART TEST" in {
 //     implicit val config = WishboneConfig(32,32)
-//     test(new uart()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>    
+//     test(new uartHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>    
 
 //         c.io.request.bits.isWrite.poke(0.B)
 //         c.clock.step(1)

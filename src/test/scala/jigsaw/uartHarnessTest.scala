@@ -14,14 +14,14 @@ import jigsaw._
 
 class uartHarnessTest extends FreeSpec with ChiselScalatestTester {
 
-  "UART TEST" in {
+  "UART HARNESS TEST" in {
     implicit val config = WishboneConfig(32,32)
-    test(new uartHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>    
+    test(new uartHarness()) { c =>    
 
         c.io.req.bits.isWrite.poke(0.B)
         c.clock.step(1)
 
-        c.io.req.bits.addrRequest.poke(0.U)
+        c.io.req.bits.addrRequest.poke("h40000000".U)
         c.clock.step(1)
         c.io.req.bits.dataRequest.poke(87.U)
         c.clock.step(1)
@@ -32,7 +32,7 @@ class uartHarnessTest extends FreeSpec with ChiselScalatestTester {
         c.io.req.valid.poke(0.B)
         c.clock.step(1)
 
-        c.io.req.bits.addrRequest.poke(4.U)
+        c.io.req.bits.addrRequest.poke("h40000004".U)
         c.clock.step(1)
         c.io.req.bits.dataRequest.poke(90.U)
         c.clock.step(1)
@@ -43,7 +43,7 @@ class uartHarnessTest extends FreeSpec with ChiselScalatestTester {
         c.io.req.valid.poke(0.B)
         c.clock.step(1)
 
-        c.io.req.bits.addrRequest.poke(16.U)
+        c.io.req.bits.addrRequest.poke("h40000010".U)
         c.clock.step(1)
         c.io.req.bits.dataRequest.poke(1.U)
         c.clock.step(1)
@@ -54,7 +54,7 @@ class uartHarnessTest extends FreeSpec with ChiselScalatestTester {
         c.io.req.valid.poke(0.B)
         c.clock.step(1)
 
-        c.io.req.bits.addrRequest.poke(16.U)
+        c.io.req.bits.addrRequest.poke("h40000010".U)
         c.clock.step(1)
         c.io.req.bits.dataRequest.poke(0.U)
         c.clock.step(1)
@@ -66,7 +66,7 @@ class uartHarnessTest extends FreeSpec with ChiselScalatestTester {
         c.clock.step(1)
 
         c.clock.setTimeout(0)
-        c.clock.step(8000)
+        c.clock.step(12000)
 
 
     }

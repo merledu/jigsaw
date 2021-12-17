@@ -29,7 +29,7 @@ class uartTX extends Module{
 
     
 
-    io.o_TX_Serial := 0.B							//by default 0
+    io.o_TX_Serial := 1.B							//by default 0
     switch(r_SM_Main){								//switch case 
         is(idle){								//if main state is idle 
             io.o_TX_Serial := 1.B						//in idle state tx serial is 1.

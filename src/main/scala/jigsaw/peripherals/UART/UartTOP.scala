@@ -48,7 +48,7 @@ class UartTOP extends Module{
         }.elsewhen(io.addr === RX_SC){
             rx_clr := io.wdata(0)
         }.otherwise{
-            control := 0.U
+            //control := 0.U
             tx := 0.U
             rx_en := 0.B
             tx_en := 0.B
