@@ -26,10 +26,10 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
           (gen: A, gen1: B)(implicit val spiConfig: Config) extends Module{
 
     val io = IO(new Spi_IO(gen, gen1))
-    val ControlReg = RegInit(0.U(32.W))
-    val TxDataReg    = RegInit(0.U(32.W))
+    val ControlReg = RegInit("b1100000".U(32.W)) // addr 0x0
+    val TxDataReg    = RegInit(0.U(32.W)) // addr 0x4
     val TxDataValidReg = RegInit(0.B)
-    val RxDataReg    = RegInit(0.U(32.W))
+    val RxDataReg    = RegInit(0.U(32.W)) // addr 0x8
     val RxDataValidReg = RegInit(0.B)
 
     val maskedData = Wire(Vec(4, UInt(8.W)))
@@ -37,10 +37,10 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
 
     io.req.ready := 1.B
     io.rsp.valid := 0.B
-    // io.rsp.bits.ackWrite := 1.B
+    io.rsp.bits.ackWrite := 1.B
 
     when (io.req.bits.addrRequest(3,0) === 0.U && io.req.bits.isWrite === 1.B){
-        ControlReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, 0.U)
+        ControlReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, ControlReg)
 
         io.rsp.bits.dataResponse := RegNext(Mux(io.rsp.ready, io.req.bits.dataRequest, 0.U))
         io.rsp.valid := RegNext(io.req.valid)
@@ -105,12 +105,28 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
         // List(io.rsp.bits.error, io.rsp.valid) map (_ := 0.B)
         // List(io.rsp.valid) map (_ := 0.B)
         List(io.cs_n, io.sclk, io.mosi, io.rsp.valid) map (_ := DontCare)
-        io.rsp.bits.dataResponse := io.req.bits.addrRequest
+        io.rsp.bits.dataResponse := RegNext(io.req.bits.addrRequest)
     }
+
+    // ClockGen
+    def counter(max: UInt) = {
+        val x = RegInit(0.asUInt(max.getWidth.W))
+        x := Mux(x === max, 0.U, x + 1.U)
+        x
+    }
+    def pulse(n: UInt) = counter(n - 1.U) === 0.U
+    def toggle(p: Bool) = {
+        val x = RegInit(false.B)
+        x := Mux(p, !x, x)
+        x
+    }
+    def clockGen(period: UInt) = toggle(pulse(period >> 1))
+    //
 
     // SPI Protocol Logic
     val spiProtocol = Module(new Protocol())
 
+    spiProtocol.clock := clockGen(ControlReg(31,5)).asClock
     spiProtocol.io.data_in.bits  := TxDataReg
     spiProtocol.io.data_in.valid := TxDataValidReg
     spiProtocol.io.CPOL := ControlReg(1)

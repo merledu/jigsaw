@@ -84,7 +84,7 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
       // c.io.req.valid.poke(0.B)
     ///////////Read Control Register////////////
       // c.io.req.bits.addrRequest.poke(0.U)
-      // c.io.req.bits.dataRequest.poke(0.U)
+      // c.io.req.bits.dataRequest.poke(3.U)
       // c.io.req.bits.activeByteLane.poke("b1111".U)
       // c.io.req.bits.isWrite.poke(0.B)
       // c.io.req.valid.poke(1.B)
@@ -101,15 +101,15 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
       c.io.req.valid.poke(0.B)
       c.clock.step(2)
     ///////////Set Control Register////////////
-      c.io.req.bits.addrRequest.poke(12.U)
-      c.io.req.bits.dataRequest.poke("b0000100".U)
-      c.io.req.bits.activeByteLane.poke("b1111".U)
-      c.io.req.bits.isWrite.poke(1.B)
-      c.io.req.valid.poke(1.B)
-      c.io.rsp.ready.poke(1.B)
-      c.clock.step(3)
-      c.io.req.bits.addrRequest.poke(0.U)
-      c.io.req.valid.poke(0.B)
+      // c.io.req.bits.addrRequest.poke(12.U)
+      // c.io.req.bits.dataRequest.poke("b0000100".U)
+      // c.io.req.bits.activeByteLane.poke("b1111".U)
+      // c.io.req.bits.isWrite.poke(1.B)
+      // c.io.req.valid.poke(1.B)
+      // c.io.rsp.ready.poke(1.B)
+      // c.clock.step(3)
+      // c.io.req.bits.addrRequest.poke(0.U)
+      // c.io.req.valid.poke(0.B)
       // c.io.req.bits.dataRequest.poke("b0000000".U)
       // c.io.req.bits.isWrite.poke(1.B)
       // c.io.req.valid.poke(1.B)
@@ -136,7 +136,7 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
 
 
       var count = 1
-      while(count != 1000) {
+      while(count != 900) {
         //
         // c.io.req.bits.addrRequest.poke(8.U)
         // c.io.req.bits.isWrite.poke(0.B)
