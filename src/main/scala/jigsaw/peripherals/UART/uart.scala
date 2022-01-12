@@ -13,7 +13,12 @@ class uart(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
 
         val cio_uart_tx_o = Output(Bool())
         val cio_uart_intr_tx_o = Output(Bool())
+        //val valid_check = Output(Bool())
     })
+
+    io.request.ready := 1.B
+
+    /*io.valid_check := io.request.valid
 
     when (io.request.valid){
         val uart = Module (new UartTOP)
@@ -47,5 +52,29 @@ class uart(val req:AbstrRequest, val rsp:AbstrResponse)(implicit val config:BusC
 
         io.cio_uart_intr_tx_o := DontCare
         io.cio_uart_tx_o := DontCare  
-    }
+    }*/
+
+    val uart_top = Module (new UartTOP)
+
+ 
+    val write_register, read_register  = Wire(Bool())
+    val data_reg = Wire(UInt(32.W))
+    val addr_reg = Wire(UInt(8.W))
+
+    write_register := Mux(io.request.fire(), io.request.bits.isWrite, false.B)
+    read_register := Mux(io.request.fire(), !io.request.bits.isWrite, false.B)
+    data_reg := io.request.bits.dataRequest
+    addr_reg := io.request.bits.addrRequest(7,0)
+    uart_top.io.wdata := data_reg
+    uart_top.io.addr := addr_reg
+    uart_top.io.we := write_register
+    uart_top.io.ren := read_register
+
+    io.response.bits.dataResponse := RegNext(Mux(io.response.ready , uart_top.io.rdata , 0.U))
+    io.response.valid := RegNext(Mux(write_register || read_register, true.B, false.B))
+    io.response.bits.error := RegNext(Mux(io.response.ready , uart_top.io.intr_tx , 0.U))
+
+    io.cio_uart_intr_tx_o := uart_top.io.intr_tx
+    io.cio_uart_tx_o := uart_top.io.tx_o
+    uart_top.io.rx_i := io.cio_uart_rx_i
 }
