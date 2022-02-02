@@ -36,7 +36,7 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
 
     io.req.ready := 1.B
     io.rsp.valid := 0.B
-    io.rsp.bits.ackWrite := 1.B
+    // io.rsp.bits.ackWrite := 1.B
 
     when (io.req.bits.addrRequest(3,0) === 0.U && io.req.bits.isWrite === 1.B){
         ControlReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, ControlReg)
