@@ -40,7 +40,7 @@ class SpiHarness(implicit val config: WishboneConfig, spiConfig:Config) extends 
     spi.io.miso := io.miso
 }
 
-object SpiDriver extends App {
+object SpiDriverWB extends App {
   implicit val config = WishboneConfig(32,32)
   implicit val spiConfig = Config()
   (new ChiselStage).emitVerilog(new SpiHarness())
@@ -49,42 +49,42 @@ object SpiDriver extends App {
 
 
 
-// class SpiHarness(implicit val config: TilelinkConfig, spiConfig:Config) extends Module {
-//   val io = IO(new Bundle {
+class SpiHarnessTL(implicit val config: TilelinkConfig, spiConfig:Config) extends Module {
+  val io = IO(new Bundle {
 
-//     // bus interconnect interfaces
-//     val req = Flipped(Decoupled(new TLRequest()))
-//     val rsp = Decoupled(new TLResponse())
+    // bus interconnect interfaces
+    val req = Flipped(Decoupled(new TLRequest()))
+    val rsp = Decoupled(new TLResponse())
 
-//     // master spi interfaces
-//     val cs_n = Output(Bool())
-//     val sclk = Output(Bool())
-//     val mosi = Output(Bool())
-//     val miso = Input(Bool())
+    // master spi interfaces
+    val cs_n = Output(Bool())
+    val sclk = Output(Bool())
+    val mosi = Output(Bool())
+    val miso = Input(Bool())
 
-//   })
-//   val hostAdapter = Module(new TilelinkHost())
-//   val deviceAdapter = Module(new TilelinkDevice())
-//   val spi = Module(new Spi(new TLRequest(), new TLResponse()))
+  })
+  val hostAdapter = Module(new TilelinkHost())
+  val deviceAdapter = Module(new TilelinkDevice())
+  val spi = Module(new Spi(new TLRequest(), new TLResponse()))
 
-//   hostAdapter.io.reqIn <> io.req
-//   io.rsp <> hostAdapter.io.rspOut
-//   hostAdapter.io.tlMasterTransmitter <> deviceAdapter.io.tlMasterReceiver
-//   hostAdapter.io.tlSlaveReceiver <> deviceAdapter.io.tlSlaveTransmitter
+  hostAdapter.io.reqIn <> io.req
+  io.rsp <> hostAdapter.io.rspOut
+  hostAdapter.io.tlMasterTransmitter <> deviceAdapter.io.tlMasterReceiver
+  hostAdapter.io.tlSlaveReceiver <> deviceAdapter.io.tlSlaveTransmitter
 
-//   spi.io.req <> deviceAdapter.io.reqOut
-//   spi.io.rsp <> deviceAdapter.io.rspIn
+  spi.io.req <> deviceAdapter.io.reqOut
+  spi.io.rsp <> deviceAdapter.io.rspIn
 
 
-//     io.cs_n := spi.io.cs_n
-//     io.sclk := spi.io.sclk
-//     io.mosi := spi.io.mosi
+    io.cs_n := spi.io.cs_n
+    io.sclk := spi.io.sclk
+    io.mosi := spi.io.mosi
     
-//     spi.io.miso := io.miso
-// }
+    spi.io.miso := io.miso
+}
 
-// object SpiHarnessDriver extends App {
-//   implicit val config = TilelinkConfig()
-//   implicit val spiConfig = Config()
-//   println(ChiselStage.emitVerilog(new SpiHarness()))
-// }
+object SpiDriverTL extends App {
+  implicit val config = TilelinkConfig()
+  implicit val spiConfig = Config()
+  (new ChiselStage).emitVerilog(new SpiHarnessTL())
+}
