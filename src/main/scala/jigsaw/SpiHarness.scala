@@ -40,11 +40,12 @@ class SpiHarness(implicit val config: WishboneConfig, spiConfig:Config) extends 
     spi.io.miso := io.miso
 }
 
-object SpiHarnessDriver extends App {
+object SpiDriver extends App {
   implicit val config = WishboneConfig(32,32)
   implicit val spiConfig = Config()
-  println(ChiselStage.emitVerilog(new SpiHarness()))
+  (new ChiselStage).emitVerilog(new SpiHarness())
 }
+
 
 
 
