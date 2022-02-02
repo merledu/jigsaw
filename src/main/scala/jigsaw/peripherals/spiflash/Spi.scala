@@ -6,7 +6,6 @@ import chisel3.experimental.ChiselEnum
 import chisel3.stage.ChiselStage
 import chisel3.util.{Cat, Decoupled, Fill, MuxCase, Enum}
 import jigsaw.peripherals.spiflash._
-// import jigsaw.peripherals.common._
 
 class Spi_IO[A <: AbstrRequest, B <: AbstrResponse]
           (gen: A, gen1: B) extends Bundle{
