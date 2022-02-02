@@ -40,7 +40,7 @@ class uartHarness(implicit val config: WishboneConfig) extends Module {
 
 object UARTHarnessDriver extends App {
   implicit val config = WishboneConfig(32,32)
-  println(ChiselStage.emitVerilog(new uartHarness()))
+  (new ChiselStage).emitVerilog(new uartHarness())
 }
 
 
@@ -79,5 +79,5 @@ class uartHarness_TL(implicit val config: TilelinkConfig) extends Module {
 
 object UARTHarnessDriverTL extends App {
   implicit val config = TilelinkConfig()
-  println(ChiselStage.emitVerilog(new uartHarness_TL()))
+  (new ChiselStage).emitVerilog(new uartHarness_TL())
 }
