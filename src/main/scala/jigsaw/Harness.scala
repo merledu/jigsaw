@@ -7,9 +7,10 @@ import jigsaw.peripherals.gpio.Gpio
 
 class Harness(implicit val config: WishboneConfig) extends Module {
   val io = IO(new Bundle {
-    val req = Flipped(Decoupled(new WBRequest()))
-    val rsp = Decoupled(new WBResponse())
+    val req = Flipped(Decoupled(new WBRequest()))          // data , valid input      ready output
+    val rsp = Decoupled(new WBResponse())                 // data , valid output      ready input
     val gpio_i = Input(UInt(32.W))
+
     val gpio_o = Output(UInt(32.W))
     val gpio_en_o = Output(UInt(32.W))
     val gpio_intr_o = Output(UInt(32.W))
@@ -20,6 +21,7 @@ class Harness(implicit val config: WishboneConfig) extends Module {
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
+  
   hostAdapter.io.wbMasterTransmitter <> deviceAdapter.io.wbMasterReceiver
   hostAdapter.io.wbSlaveReceiver <> deviceAdapter.io.wbSlaveTransmitter
 
