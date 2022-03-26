@@ -18,7 +18,7 @@ class Gpio[A <: AbstrRequest, B <: AbstrResponse]
   })
 
   val reg2hw = Wire(new GPIOReg2Hw(DW = 32))   // Outputs
-  val hw2reg = Wire(new GPIOHw2Reg(DW = 32))   // Inputs
+  val hw2reg = Wire(new GPIOHw2Reg(DW = 32))  // Inputs
 
   val gpioRegTop = Module(new GpioRegTop(gen, gen1))
 
