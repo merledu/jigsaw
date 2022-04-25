@@ -37,7 +37,7 @@ class i2cHarness(implicit val config: WishboneConfig) extends Module {
   i2c_wrapper.io.request <> deviceAdapter.io.reqOut
   i2c_wrapper.io.response <> deviceAdapter.io.rspIn
 
-    i2c_wrapper.io.cio_i2c_sda_in := io.i2c_sda_in
+    // i2c_wrapper.io.cio_i2c_sda_in := io.i2c_sda_in
     io.i2c_sda := i2c_wrapper.io.cio_i2c_sda
     io.i2c_scl := i2c_wrapper.io.cio_i2c_scl
     io.i2c_intr := i2c_wrapper.io.cio_i2c_intr
