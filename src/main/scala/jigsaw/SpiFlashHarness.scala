@@ -4,9 +4,9 @@ import caravan.bus.wishbone.{WBRequest, WBResponse, WishboneConfig, WishboneDevi
 import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util.Decoupled
-import jigsaw.peripherals.spi.{Config,Spi}
+import jigsaw.peripherals.spiflash.{Config,SpiFlash}
 
-class SpiHarness(implicit val config: WishboneConfig, spiConfig:Config) extends Module {
+class SpiFlashHarness(implicit val config: WishboneConfig, spiConfig:Config) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -22,7 +22,7 @@ class SpiHarness(implicit val config: WishboneConfig, spiConfig:Config) extends 
   })
   val hostAdapter = Module(new WishboneHost())
   val deviceAdapter = Module(new WishboneDevice())
-  val spi = Module(new Spi(new WBRequest(), new WBResponse()))
+  val spi = Module(new SpiFlash(new WBRequest(), new WBResponse()))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
@@ -40,16 +40,16 @@ class SpiHarness(implicit val config: WishboneConfig, spiConfig:Config) extends 
     spi.io.miso := io.miso
 }
 
-object SpiDriverWB extends App {
+object SpiFlashDriverWB extends App {
   implicit val config = WishboneConfig(32,32)
   implicit val spiConfig = Config()
-  (new ChiselStage).emitVerilog(new SpiHarness())
+  (new ChiselStage).emitVerilog(new SpiFlashHarness())
 }
 
 
 
 
-class SpiHarnessTL(implicit val config: TilelinkConfig, spiConfig:Config) extends Module {
+class SpiFlashHarnessTL(implicit val config: TilelinkConfig, spiConfig:Config) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -65,7 +65,7 @@ class SpiHarnessTL(implicit val config: TilelinkConfig, spiConfig:Config) extend
   })
   val hostAdapter = Module(new TilelinkHost())
   val deviceAdapter = Module(new TilelinkDevice())
-  val spi = Module(new Spi(new TLRequest(), new TLResponse()))
+  val spi = Module(new SpiFlash(new TLRequest(), new TLResponse()))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
@@ -83,8 +83,8 @@ class SpiHarnessTL(implicit val config: TilelinkConfig, spiConfig:Config) extend
     spi.io.miso := io.miso
 }
 
-object SpiDriverTL extends App {
+object SpiFlashDriverTL extends App {
   implicit val config = TilelinkConfig()
   implicit val spiConfig = Config()
-  (new ChiselStage).emitVerilog(new SpiHarnessTL())
+  (new ChiselStage).emitVerilog(new SpiFlashHarnessTL())
 }
