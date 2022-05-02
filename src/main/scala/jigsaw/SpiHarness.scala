@@ -6,7 +6,7 @@ import chisel3.stage.ChiselStage
 import chisel3.util.Decoupled
 import jigsaw.peripherals.spi.{Config,Spi}
 
-class SpiHarness(implicit val config: WishboneConfig, spiConfig:Config) extends Module {
+class SpiHarness(implicit val config: WishboneConfig) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -42,14 +42,14 @@ class SpiHarness(implicit val config: WishboneConfig, spiConfig:Config) extends 
 
 object SpiDriverWB extends App {
   implicit val config = WishboneConfig(32,32)
-  implicit val spiConfig = Config()
+  // implicit val spiConfig = Config()
   (new ChiselStage).emitVerilog(new SpiHarness())
 }
 
 
 
 
-class SpiHarnessTL(implicit val config: TilelinkConfig, spiConfig:Config) extends Module {
+class SpiHarnessTL(implicit val config: TilelinkConfig) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -85,6 +85,6 @@ class SpiHarnessTL(implicit val config: TilelinkConfig, spiConfig:Config) extend
 
 object SpiDriverTL extends App {
   implicit val config = TilelinkConfig()
-  implicit val spiConfig = Config()
+  // implicit val spiConfig = Config()
   (new ChiselStage).emitVerilog(new SpiHarnessTL())
 }

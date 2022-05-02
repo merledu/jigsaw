@@ -18,8 +18,8 @@ class Protocol_IO(DW:Int) extends Bundle{
     // val resetProtocol = Input(Bool())
 }
 
-class Protocol(implicit val spiConfig: Config) extends Module{
-    val io = IO(new Protocol_IO(spiConfig.DW))
+class Protocol(val DW:Int = 32) extends Module{
+    val io = IO(new Protocol_IO(DW))
     
     val CPOL = WireInit(io.CPOL)
     val CPHA = WireInit(io.CPHA)
@@ -27,9 +27,9 @@ class Protocol(implicit val spiConfig: Config) extends Module{
     val idle :: busy :: Nil = Enum(2)
     val state = RegInit(idle)
 
-    val miso_dataReg = RegInit(0.U(spiConfig.DW.W))
+    val miso_dataReg = RegInit(0.U(DW.W))
     val count = RegInit(0.U(7.W))
-    val dataReg = RegInit(0.U((spiConfig.DW*2).W))
+    val dataReg = RegInit(0.U((DW*2).W))
 
     val clk = WireInit(clock.asUInt()(0))
     io.sck := Mux(state === busy, Mux(CPOL,~clk,clk), 0.B)
@@ -57,14 +57,14 @@ class Protocol(implicit val spiConfig: Config) extends Module{
             }
         }
         is(busy){
-            when (count === (spiConfig.DW*2).U){
+            when (count === (DW*2).U){
                 io.data_in.ready := 1.B
                 io.ss := 1.B
                 state := idle
                 count := 0.U
             }.otherwise{
                 io.ss := 0.B
-                io.mosi := dataReg((spiConfig.DW*2)-1)
+                io.mosi := dataReg((DW*2)-1)
                 dataReg := dataReg << 1
                 count := count + 1.U
             }
@@ -76,7 +76,7 @@ class Protocol(implicit val spiConfig: Config) extends Module{
     switch(state){
         is(busy){
             io.ss := 0.B
-            when (count1 === (spiConfig.DW*2).U /*& io.data_out.ready*/){
+            when (count1 === (DW*2).U /*& io.data_out.ready*/){
                 io.data_out.bits := miso_dataReg
                 io.data_out.valid := 1.B
                 count1 := 0.U

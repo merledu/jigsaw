@@ -22,7 +22,7 @@ class Spi_IO[A <: AbstrRequest, B <: AbstrResponse]
 }
 
 class SpiFlash[A <: AbstrRequest, B <: AbstrResponse]
-          (gen: A, gen1: B)(implicit val spiConfig: Config) extends Module{
+          (gen: A, gen1: B) extends Module{
 
     val io = IO(new Spi_IO(gen, gen1))
     val ControlReg = RegInit("b1100000".U(32.W)) // addr 0x0

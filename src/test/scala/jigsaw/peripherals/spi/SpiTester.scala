@@ -54,7 +54,7 @@ class SpiTester extends FreeSpec with ChiselScalatestTester {
   "Spi Flash" in {
     implicit val config = WishboneConfig(32,32)
     // implicit val config = TilelinkConfig()
-    implicit val spiConfig = jigsaw.peripherals.spi.Config()
+    // implicit val spiConfig = jigsaw.peripherals.spi.Config()
     test(new SpiHarness()).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       // c.io.req.bits.addrRequest.poke(0.U)
       // c.io.req.bits.dataRequest.poke(0.U)
