@@ -7,7 +7,7 @@ import chisel3.util.Decoupled
 // import jigsaw.peripherals.spiflash.{Config,Spi}
 import jigsaw.rams.sram._
 
-class SramHarness(implicit val config: WishboneConfig ) extends Module {
+class SramHarness(programFile:Option[String])(implicit val config: WishboneConfig) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -16,7 +16,7 @@ class SramHarness(implicit val config: WishboneConfig ) extends Module {
   })
   val hostAdapter = Module(new WishboneHost())
   val deviceAdapter = Module(new WishboneDevice())
-  val sram = Module(new SRAM1kb(new WBRequest(), new WBResponse()))
+  val sram = Module(new SRAM1kb(new WBRequest(), new WBResponse())(programFile))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
@@ -30,13 +30,13 @@ class SramHarness(implicit val config: WishboneConfig ) extends Module {
 object SramDriverWB extends App {
   implicit val config = WishboneConfig(32,32)
 //   implicit val spiConfig = Config()
-  (new ChiselStage).emitVerilog(new SramHarness())
+  (new ChiselStage).emitVerilog(new SramHarness(None))
 }
 
 
 
 
-class SramHarnessTL(implicit val config: TilelinkConfig ) extends Module {
+class SramHarnessTL(programFile:Option[String])(implicit val config: TilelinkConfig ) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -46,7 +46,7 @@ class SramHarnessTL(implicit val config: TilelinkConfig ) extends Module {
   })
   val hostAdapter = Module(new TilelinkHost())
   val deviceAdapter = Module(new TilelinkDevice())
-  val sram = Module(new SRAM1kb(new TLRequest(), new TLResponse()))
+  val sram = Module(new SRAM1kb(new TLRequest(), new TLResponse())(programFile))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
@@ -61,5 +61,5 @@ class SramHarnessTL(implicit val config: TilelinkConfig ) extends Module {
 object SramDriverTL extends App {
   implicit val config = TilelinkConfig()
 //   implicit val spiConfig = Config()
-  (new ChiselStage).emitVerilog(new SramHarnessTL())
+  (new ChiselStage).emitVerilog(new SramHarnessTL(None))
 }

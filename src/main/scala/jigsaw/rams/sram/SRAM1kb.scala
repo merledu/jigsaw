@@ -7,7 +7,7 @@ import chisel3.util.experimental._
 
 import caravan.bus.common.{AbstrRequest, AbstrResponse, BusConfig}
 
-class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B) extends Module {
+class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B)(val programFile:Option[String] ) extends Module {
   val io = IO(new Bundle {
     val req = Flipped(Decoupled(gen))
     val rsp = Decoupled(gen1)
@@ -23,7 +23,7 @@ class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B) extends Mo
   val rdata = Wire(UInt(32.W))
 
   // the memory
-  val sram = Module(new sram())
+  val sram = Module(new sram(programFile))
 
   val clk = WireInit(clock.asUInt()(0))
 
@@ -86,7 +86,9 @@ class SRAMIO extends Bundle {
   val dout1 = Output(UInt(32.W))
   
 }
-class sram extends BlackBox with HasBlackBoxResource {
-  val io = IO(new SRAMIO)
-  addResource("/sram/sram.v")
+class sram(programFile:Option[String] ) extends BlackBox(
+  Map("IFILE" -> {if (programFile.isDefined) programFile.get else ""})
+  ) with HasBlackBoxResource {
+    val io = IO(new SRAMIO)
+    addResource("/sram/sram.v")
 }
