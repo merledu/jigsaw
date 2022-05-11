@@ -105,7 +105,7 @@ initial
     if (IZERO)
       for (i=0; i<RAM_DEPTH; i=i+1) mem[i] = {DATA_WIDTH{1'b0}};
     else
-      if (IFILE != "") $readmemh({IFILE,".hex"}, mem);
+      if (IFILE != "") $readmemh(IFILE, mem);
 
   // Memory Write Block Port 0
   // Write Operation : When web0 = 0, csb0 = 0
