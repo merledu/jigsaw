@@ -47,7 +47,7 @@ class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B)(val progra
     validReg := true.B
     sram.io.csb0 := false.B
     sram.io.web0 := true.B
-    sram.io.addr0 := io.req.bits.addrRequest
+    sram.io.addr0 := io.req.bits.addrRequest/4.U
 
     rdata := sram.io.dout0
   } .elsewhen(io.req.valid && io.req.bits.isWrite) {
@@ -58,7 +58,7 @@ class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B)(val progra
     sram.io.csb0 := false.B
     sram.io.web0 := false.B
     sram.io.wmask0 := io.req.bits.activeByteLane
-    sram.io.addr0 := io.req.bits.addrRequest
+    sram.io.addr0 := io.req.bits.addrRequest/4.U
     sram.io.din0 := io.req.bits.dataRequest
     validReg := true.B
     rdata := DontCare
