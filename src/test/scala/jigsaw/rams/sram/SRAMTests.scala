@@ -28,7 +28,7 @@ class SRAMTests extends FreeSpec with ChiselScalatestTester {
     // val programFile = Some("/home/talha/inst")
     val programFile = getFile
     // test(new SramHarness(programFile))/*.withAnnotations(Seq(VerilatorBackendAnnotation))*/ { c =>
-    test(new SramHarness(programFile)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
+    test(new SramHarness(programFile, 10)).withAnnotations(Seq(VerilatorBackendAnnotation)) { c =>
       c.io.req.valid.poke(1.B)
       c.io.req.bits.addrRequest.poke(3.U)
       c.io.req.bits.dataRequest.poke("h12345678".U)

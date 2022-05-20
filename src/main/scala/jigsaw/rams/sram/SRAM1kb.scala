@@ -7,7 +7,7 @@ import chisel3.util.experimental._
 
 import caravan.bus.common.{AbstrRequest, AbstrResponse, BusConfig}
 
-class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B)(val programFile:Option[String] ) extends Module {
+class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B)(programFile:Option[String],  val AW:Int = 10) extends Module {
   val io = IO(new Bundle {
     val req = Flipped(Decoupled(gen))
     val rsp = Decoupled(gen1)
@@ -23,7 +23,7 @@ class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B)(val progra
   val rdata = Wire(UInt(32.W))
 
   // the memory
-  val sram = Module(new sram(programFile))
+  val sram = Module(new sram(programFile=programFile, AW=AW))
 
   val clk = WireInit(clock.asUInt()(0))
 
@@ -71,24 +71,25 @@ class SRAM1kb[A <: AbstrRequest, B <: AbstrResponse](gen: A, gen1: B)(val progra
   io.rsp.bits.dataResponse := rdata
 }
 
-class SRAMIO extends Bundle {
+class SRAMIO(AW:Int) extends Bundle {
   val clk0 = Input(Bool())
   val csb0 = Input(Bool())
   val web0 = Input(Bool())
   val wmask0 = Input(UInt(4.W))
-  val addr0 = Input(UInt(10.W))
+  val addr0 = Input(UInt(AW.W))
   val din0 = Input(UInt(32.W))
   val dout0 = Output(UInt(32.W))
 
   val clk1 = Input(Bool())
   val csb1 = Input(Bool())
-  val addr1 = Input(UInt(10.W))
+  val addr1 = Input(UInt(AW.W))
   val dout1 = Output(UInt(32.W))
   
 }
-class sram(programFile:Option[String] ) extends BlackBox(
-  Map("IFILE" -> {if (programFile.isDefined) programFile.get else ""})
+class sram(programFile:Option[String], AW:Int) extends BlackBox(
+  Map("IFILE" -> {if (programFile.isDefined) programFile.get else ""},
+      "ADDR_WIDTH" -> AW)
   ) with HasBlackBoxResource {
-    val io = IO(new SRAMIO)
+    val io = IO(new SRAMIO(AW=AW))
     addResource("/sram/sram.v")
 }

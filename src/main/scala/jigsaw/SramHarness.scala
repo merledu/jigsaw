@@ -7,7 +7,7 @@ import chisel3.util.Decoupled
 // import jigsaw.peripherals.spiflash.{Config,Spi}
 import jigsaw.rams.sram._
 
-class SramHarness(programFile:Option[String])(implicit val config: WishboneConfig) extends Module {
+class SramHarness(programFile:Option[String], val AW:Int = 10)(implicit val config: WishboneConfig) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -16,7 +16,7 @@ class SramHarness(programFile:Option[String])(implicit val config: WishboneConfi
   })
   val hostAdapter = Module(new WishboneHost())
   val deviceAdapter = Module(new WishboneDevice())
-  val sram = Module(new SRAM1kb(new WBRequest(), new WBResponse())(programFile))
+  val sram = Module(new SRAM1kb(new WBRequest(), new WBResponse())(programFile, AW))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
@@ -36,7 +36,7 @@ object SramDriverWB extends App {
 
 
 
-class SramHarnessTL(programFile:Option[String])(implicit val config: TilelinkConfig ) extends Module {
+class SramHarnessTL(programFile:Option[String], val AW:Int = 10)(implicit val config: TilelinkConfig ) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
@@ -46,7 +46,7 @@ class SramHarnessTL(programFile:Option[String])(implicit val config: TilelinkCon
   })
   val hostAdapter = Module(new TilelinkHost())
   val deviceAdapter = Module(new TilelinkDevice())
-  val sram = Module(new SRAM1kb(new TLRequest(), new TLResponse())(programFile))
+  val sram = Module(new SRAM1kb(new TLRequest(), new TLResponse())(programFile, AW))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
