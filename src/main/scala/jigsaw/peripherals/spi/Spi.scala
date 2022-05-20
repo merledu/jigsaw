@@ -1,4 +1,4 @@
-package jigsaw.peripherals.spiflash
+package jigsaw.peripherals.spi
 
 import caravan.bus.common.{AbstrRequest, AbstrResponse}
 import chisel3._
@@ -22,7 +22,7 @@ class Spi_IO[A <: AbstrRequest, B <: AbstrResponse]
 }
 
 class Spi[A <: AbstrRequest, B <: AbstrResponse]
-          (gen: A, gen1: B)(implicit val spiConfig: Config) extends Module{
+          (gen: A, gen1: B) extends Module{
 
     val io = IO(new Spi_IO(gen, gen1))
     val ControlReg = RegInit("b1100000".U(32.W)) // addr 0x0
@@ -57,27 +57,28 @@ class Spi[A <: AbstrRequest, B <: AbstrResponse]
         // List(io.cs_n, io.sclk, io.mosi) map (_ := DontCare) 
     }
     .elsewhen(io.req.bits.addrRequest(3,0) === 4.U && io.req.bits.isWrite === 1.B){
-        when(ControlReg(4,2) === 0.U){ // READ
-            TxDataReg := Mux(io.req.valid, Cat("b00000011".U,(io.req.bits.dataRequest & maskedData.asUInt)(23,0)), 0.U)
-            TxDataValidReg := io.req.valid
-        }
-        .elsewhen(ControlReg(4,2) === 1.U){ // WR_EN
-            TxDataReg := Mux(io.req.valid, Cat("b00000110".U, Fill(24,0.B)), 0.U)
-            TxDataValidReg := io.req.valid
-        }
-        .elsewhen(ControlReg(4,2) === 2.U){ // PP_ADDR
-            TxDataReg := Mux(io.req.valid, Cat("b00000010".U,(io.req.bits.dataRequest & maskedData.asUInt)(23,0)), 0.U)
-            TxDataValidReg := io.req.valid
-        }
-        .elsewhen(ControlReg(4,2) === 3.U){ // PP_DATA
-            TxDataReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, 0.U)
-            TxDataValidReg := io.req.valid
-        }
-        .elsewhen(ControlReg(4,2) === 4.U){ // WR_DI
-            TxDataReg := Mux(io.req.valid, Cat("b00000100".U, Fill(24,0.B)), 0.U)
-            TxDataValidReg := io.req.valid
-        }
-        
+        // when(ControlReg(4,2) === 0.U){ // READ
+        //     TxDataReg := Mux(io.req.valid, Cat("b00000011".U,(io.req.bits.dataRequest & maskedData.asUInt)(23,0)), 0.U)
+        //     TxDataValidReg := io.req.valid
+        // }
+        // .elsewhen(ControlReg(4,2) === 1.U){ // WR_EN
+        //     TxDataReg := Mux(io.req.valid, Cat("b00000110".U, Fill(24,0.B)), 0.U)
+        //     TxDataValidReg := io.req.valid
+        // }
+        // .elsewhen(ControlReg(4,2) === 2.U){ // PP_ADDR
+        //     TxDataReg := Mux(io.req.valid, Cat("b00000010".U,(io.req.bits.dataRequest & maskedData.asUInt)(23,0)), 0.U)
+        //     TxDataValidReg := io.req.valid
+        // }
+        // .elsewhen(ControlReg(4,2) === 3.U){ // PP_DATA
+        //     TxDataReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, 0.U)
+        //     TxDataValidReg := io.req.valid
+        // }
+        // .elsewhen(ControlReg(4,2) === 4.U){ // WR_DI
+        //     TxDataReg := Mux(io.req.valid, Cat("b00000100".U, Fill(24,0.B)), 0.U)
+        //     TxDataValidReg := io.req.valid
+        // }
+        TxDataReg := Mux(io.req.valid, io.req.bits.dataRequest & maskedData.asUInt, 0.U)
+        TxDataValidReg := io.req.valid        
 
         io.rsp.bits.dataResponse := RegNext(Mux(io.rsp.ready, io.req.bits.addrRequest, 0.U))
         io.rsp.valid := RegNext(1.B)

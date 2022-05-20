@@ -1,4 +1,4 @@
-package jigsaw.peripherals.spiflash
+package jigsaw.peripherals.spi
 
 import chisel3._
 import chisel3.util._

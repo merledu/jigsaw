@@ -4,87 +4,75 @@ import caravan.bus.wishbone.{WBRequest, WBResponse, WishboneConfig, WishboneDevi
 import chisel3._
 import chisel3.stage.ChiselStage
 import chisel3.util.Decoupled
-import jigsaw.peripherals.spi.{Config,Spi}
+// import jigsaw.peripherals.spiflash.{Config,Spi}
+// import jigsaw.rams.sram._
+import jigsaw.peripherals.timer._
 
-class SpiHarness(implicit val config: WishboneConfig) extends Module {
+class TimerHarness(implicit val config: WishboneConfig ) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
     val req = Flipped(Decoupled(new WBRequest()))
     val rsp = Decoupled(new WBResponse())
 
-    // master spi interfaces
-    val cs_n = Output(Bool())
-    val sclk = Output(Bool())
-    val mosi = Output(Bool())
-    val miso = Input(Bool())
-
+    val cio_timer_intr_cmp = Output(Bool())
+    val cio_timer_intr_ovf = Output(Bool())
   })
   val hostAdapter = Module(new WishboneHost())
   val deviceAdapter = Module(new WishboneDevice())
-  val spi = Module(new Spi(new WBRequest(), new WBResponse()))
+  val timer = Module(new Timer(new WBRequest(), new WBResponse()))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
   hostAdapter.io.wbMasterTransmitter <> deviceAdapter.io.wbMasterReceiver
   hostAdapter.io.wbSlaveReceiver <> deviceAdapter.io.wbSlaveTransmitter
 
-  spi.io.req <> deviceAdapter.io.reqOut
-  spi.io.rsp <> deviceAdapter.io.rspIn
+  timer.io.req <> deviceAdapter.io.reqOut
+  timer.io.rsp <> deviceAdapter.io.rspIn
 
-
-    io.cs_n := spi.io.cs_n
-    io.sclk := spi.io.sclk
-    io.mosi := spi.io.mosi
-    
-    spi.io.miso := io.miso
+  io.cio_timer_intr_cmp := timer.io.cio_timer_intr_cmp
+  io.cio_timer_intr_ovf := timer.io.cio_timer_intr_ovf
 }
 
-object SpiDriverWB extends App {
+object TimerDriverWB extends App {
   implicit val config = WishboneConfig(32,32)
-  // implicit val spiConfig = Config()
-  (new ChiselStage).emitVerilog(new SpiHarness())
+//   implicit val spiConfig = Config()
+  (new ChiselStage).emitVerilog(new TimerHarness())
 }
 
 
 
 
-class SpiHarnessTL(implicit val config: TilelinkConfig) extends Module {
+class TimerHarnessTL(implicit val config: TilelinkConfig ) extends Module {
   val io = IO(new Bundle {
 
     // bus interconnect interfaces
     val req = Flipped(Decoupled(new TLRequest()))
     val rsp = Decoupled(new TLResponse())
 
-    // master spi interfaces
-    val cs_n = Output(Bool())
-    val sclk = Output(Bool())
-    val mosi = Output(Bool())
-    val miso = Input(Bool())
-
+    val cio_timer_intr_cmp = Output(Bool())
+    val cio_timer_intr_ovf = Output(Bool())
+    
   })
   val hostAdapter = Module(new TilelinkHost())
   val deviceAdapter = Module(new TilelinkDevice())
-  val spi = Module(new Spi(new TLRequest(), new TLResponse()))
+  val timer = Module(new Timer(new TLRequest(), new TLResponse()))
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
   hostAdapter.io.tlMasterTransmitter <> deviceAdapter.io.tlMasterReceiver
   hostAdapter.io.tlSlaveReceiver <> deviceAdapter.io.tlSlaveTransmitter
 
-  spi.io.req <> deviceAdapter.io.reqOut
-  spi.io.rsp <> deviceAdapter.io.rspIn
+  timer.io.req <> deviceAdapter.io.reqOut
+  timer.io.rsp <> deviceAdapter.io.rspIn
 
+  io.cio_timer_intr_cmp := timer.io.cio_timer_intr_cmp
+  io.cio_timer_intr_ovf := timer.io.cio_timer_intr_ovf
 
-    io.cs_n := spi.io.cs_n
-    io.sclk := spi.io.sclk
-    io.mosi := spi.io.mosi
-    
-    spi.io.miso := io.miso
 }
 
-object SpiDriverTL extends App {
+object TimerDriverTL extends App {
   implicit val config = TilelinkConfig()
-  // implicit val spiConfig = Config()
-  (new ChiselStage).emitVerilog(new SpiHarnessTL())
+//   implicit val spiConfig = Config()
+  (new ChiselStage).emitVerilog(new TimerHarnessTL())
 }
