@@ -22,8 +22,8 @@ class Harness(implicit val config: WishboneConfig) extends Module {
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
   
-  hostAdapter.io.wbMasterTransmitter <> deviceAdapter.io.wbMasterReceiver
-  hostAdapter.io.wbSlaveReceiver <> deviceAdapter.io.wbSlaveTransmitter
+  hostAdapter.io.masterTransmitter <> deviceAdapter.io.masterReceiver
+  hostAdapter.io.slaveReceiver <> deviceAdapter.io.slaveTransmitter
 
   gpio.io.req <> deviceAdapter.io.reqOut
   gpio.io.rsp <> deviceAdapter.io.rspIn

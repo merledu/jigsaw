@@ -20,8 +20,8 @@ class SramHarness(programFile:Option[String], val AW:Int = 10)(implicit val conf
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
-  hostAdapter.io.wbMasterTransmitter <> deviceAdapter.io.wbMasterReceiver
-  hostAdapter.io.wbSlaveReceiver <> deviceAdapter.io.wbSlaveTransmitter
+  hostAdapter.io.masterTransmitter <> deviceAdapter.io.masterReceiver
+  hostAdapter.io.slaveReceiver <> deviceAdapter.io.slaveTransmitter
 
   sram.io.req <> deviceAdapter.io.reqOut
   sram.io.rsp <> deviceAdapter.io.rspIn
