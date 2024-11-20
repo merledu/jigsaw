@@ -50,8 +50,8 @@ class SramHarnessTL(programFile:Option[String], val AW:Int = 10)(implicit val co
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
-  hostAdapter.io.tlMasterTransmitter <> deviceAdapter.io.tlMasterReceiver
-  hostAdapter.io.tlSlaveReceiver <> deviceAdapter.io.tlSlaveTransmitter
+  hostAdapter.io.masterTransmitter <> deviceAdapter.io.masterReceiver
+  hostAdapter.io.slaveReceiver <> deviceAdapter.io.slaveTransmitter
 
   sram.io.req <> deviceAdapter.io.reqOut
   sram.io.rsp <> deviceAdapter.io.rspIn

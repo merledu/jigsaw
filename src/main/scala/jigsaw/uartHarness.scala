@@ -66,8 +66,8 @@ class uartHarness_TL(implicit val config: TilelinkConfig) extends Module {
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
-  hostAdapter.io.tlMasterTransmitter <> deviceAdapter.io.tlMasterReceiver
-  hostAdapter.io.tlSlaveReceiver <> deviceAdapter.io.tlSlaveTransmitter
+  hostAdapter.io.masterTransmitter <> deviceAdapter.io.masterReceiver
+  hostAdapter.io.slaveReceiver <> deviceAdapter.io.slaveTransmitter
 
   uart_wrapper.io.req <> deviceAdapter.io.reqOut
   uart_wrapper.io.rsp <> deviceAdapter.io.rspIn

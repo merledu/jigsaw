@@ -60,8 +60,8 @@ class TimerHarnessTL(implicit val config: TilelinkConfig ) extends Module {
 
   hostAdapter.io.reqIn <> io.req
   io.rsp <> hostAdapter.io.rspOut
-  hostAdapter.io.tlMasterTransmitter <> deviceAdapter.io.tlMasterReceiver
-  hostAdapter.io.tlSlaveReceiver <> deviceAdapter.io.tlSlaveTransmitter
+  hostAdapter.io.masterTransmitter <> deviceAdapter.io.masterReceiver
+  hostAdapter.io.slaveReceiver <> deviceAdapter.io.slaveTransmitter
 
   timer.io.req <> deviceAdapter.io.reqOut
   timer.io.rsp <> deviceAdapter.io.rspIn
